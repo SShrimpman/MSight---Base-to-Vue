@@ -9,7 +9,7 @@ export default {
 </script>
 
 <template>
-    <div id="modal" ref="modal" class="hidden">
+    <div id="modal" ref="modal" class="modal hidden">
         <div class="modal-loading-container">
             <div class="cube-container">
                 <div class="h1Container">
@@ -187,13 +187,6 @@ export default {
 
 <style lang="scss" scoped>
 /* Loading popup */
-#modal {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: -webkit-fill-available;
-}
-
 .cube-container {
     position: relative;
     height: 100px;

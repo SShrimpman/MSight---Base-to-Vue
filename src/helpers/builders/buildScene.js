@@ -10,7 +10,7 @@ import {
 } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import * as SceneStore from "../../stores/scene";
-import Stats from "stats.js/src/Stats";
+//import Stats from "stats.js/src/Stats";
 import { CSS2DRenderer } from "three/examples/jsm/renderers/CSS2DRenderer";
 import { Vector3 } from "three";
 
@@ -78,27 +78,27 @@ export default function buildScene() {
   controls.target.set(-2, 0, 0);
   SceneStore.setControls(controls);
 
-  //Stats debug component
-  var stats = new Stats();
-  stats.showPanel(0); // 0: FPS, 1: MS, 2: MB, 3+: custom
-  const statsWindow = stats.dom;
-  statsWindow.classList.add("stats");
-  document.body.appendChild(statsWindow);
+  // //Stats debug component
+  // var stats = new Stats();
+  // stats.showPanel(0); // 0: FPS, 1: MS, 2: MB, 3+: custom
+  // const statsWindow = stats.dom;
+  // statsWindow.classList.add("stats");
+  // document.body.appendChild(statsWindow);
 
-  //Animation loop
-  const animate = () => {
-    stats.begin();
+  // //Animation loop
+  // const animate = () => {
+  //   stats.begin();
 
-    cameraFocalPoint();
+  //   cameraFocalPoint();
 
-    controls.update();
-    renderer.render(SceneStore.scene, SceneStore.camera);
-    labelRenderer.render(SceneStore.scene, SceneStore.camera);
+  //   controls.update();
+  //   renderer.render(SceneStore.scene, SceneStore.camera);
+  //   labelRenderer.render(SceneStore.scene, SceneStore.camera);
 
-    stats.end();
+  //   stats.end();
 
-    requestAnimationFrame(animate);
-  };
+  //   requestAnimationFrame(animate);
+  // };
 
   /**
    * 

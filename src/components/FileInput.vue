@@ -1,18 +1,27 @@
 <template>
-    <input type="file" ref="fileInput" id="file-input" accept=".ifc, .ifcXML, .ifcZIP" multiple @change="uploadAndHide"> 
-    <button id="input-button" @click.prevent="$refs.fileInput.click()">Select File</button>
+    <input type="file" ref="fileInputRef" id="file-input" accept=".ifc, .ifcXML, .ifcZIP" multiple @change="uploadAndHide"> 
+    <button id="input-button" @click.prevent="$refs[fileInputRef].click()">Select File</button>
 </template>
 
 <script>
+import { nextTick } from "vue";
 import { emitGlobalEvent } from "../helpers/emitEvent"
 import loadModels from "../helpers/loadModels"
 
 // const inputBtn = document.getElementById('input-button');
 
 export default {
+    data(){
+        return{
+            fileInputRef: "fileInputRef",
+        }
+    },
     methods: {
         async uploadAndHide(event) {
-            this.$refs.fileInput.classList.add('hidden')
+            const fileInput = this.$refs[this.fileInputRef];
+            nextTick(() => {
+                fileInput.classList.add("hidden")
+            })
             emitGlobalEvent("loading");
             await loadModels(event);
         },

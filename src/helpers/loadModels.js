@@ -78,7 +78,6 @@ export default async function loadModels(event) {
       customID: idx,
     });
     Models.models[idx].subset = subset;
-    console.log(Scene.scene)
     Scene.scene.add(subset);
     RaycastStore.subsetRaycast.push(subset);
     SelectionStore.addNewModelReferenceToVisible(idx);

@@ -29,12 +29,11 @@ export default {
 <style scoped>
 #three-canvas {
   position: fixed;
-  font-family: var(--font-family);
   top: 0;
   left: 0;
   outline: none;
-  width: -webkit-fill-available;
-  height: -webkit-fill-available;
+  width: 100vw;
+  height: 100vh;
   background-image: linear-gradient(0deg, rgb(250, 250, 250) 0%, var(--primary-color-light) 100%);
 }
 </style>

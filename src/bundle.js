@@ -8019,7 +8019,7 @@ function emitGlobalEvent(eventName) {
 // import * as Models from "./models";
 
 //Sets up the renderer, fetching the canvas of the HTML
-const threeCanvas = document.getElementById("three-canvas");
+document.getElementById("three-canvas");
 
 let scene = undefined;
 const setScene = (value) => (scene = value);
@@ -103739,6 +103739,8 @@ function buildScene() {
   scene.add(directionalLight);
   scene.add(directionalLight.target);
 
+  const threeCanvas = document.getElementById('three-canvas');
+
   const renderer = new WebGLRenderer({
     canvas: threeCanvas,
     alpha: true,
@@ -103771,6 +103773,38 @@ function buildScene() {
   const controls = new OrbitControls(camera, threeCanvas);
   controls.enableDamping = false;
   controls.target.set(-2, 0, 0);
+
+  // //Stats debug component
+  // var stats = new Stats();
+  // stats.showPanel(0); // 0: FPS, 1: MS, 2: MB, 3+: custom
+  // const statsWindow = stats.dom;
+  // statsWindow.classList.add("stats");
+  // document.body.appendChild(statsWindow);
+
+  //Animation loop
+  const animate = () => {
+    // stats.begin();
+
+    cameraFocalPoint();
+
+    controls.update();
+    renderer.render(scene, camera);
+    labelRenderer.render(scene, camera);
+
+    // stats.end();
+
+    requestAnimationFrame(animate);
+  };
+
+  /**
+   * 
+   */
+  function cameraFocalPoint() {
+    const cameraWorldDir = new Vector3();
+    controls.object.getWorldDirection(cameraWorldDir);
+    const distance = controls.getDistance();
+    if(distance < 2) controls.target.add(cameraWorldDir.multiplyScalar(0.4));
+  }
 
   animate();
 
@@ -103814,7 +103848,7 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
   ], 64 /* STABLE_FRAGMENT */))
 }
 
-var css_248z = "#three-canvas[data-v-7ba5bd90]{background-image:linear-gradient(0deg,#fafafa 0,var(--primary-color-light) 100%);font-family:var(--font-family);height:-webkit-fill-available;left:0;outline:none;position:fixed;top:0;width:-webkit-fill-available}";
+var css_248z = "#three-canvas[data-v-7ba5bd90]{background-image:linear-gradient(0deg,#fafafa 0,var(--primary-color-light) 100%);height:100vh;left:0;outline:none;position:fixed;top:0;width:100vw}";
 styleInject(css_248z);
 
 script.render = render;

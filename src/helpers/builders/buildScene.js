@@ -42,8 +42,10 @@ export default function buildScene() {
   SceneStore.scene.add(directionalLight);
   SceneStore.scene.add(directionalLight.target);
 
+  const threeCanvas = document.getElementById('three-canvas');
+
   const renderer = new WebGLRenderer({
-    canvas: SceneStore.threeCanvas,
+    canvas: threeCanvas,
     alpha: true,
     antialias: true,
   });
@@ -73,7 +75,7 @@ export default function buildScene() {
   // SceneStore.scene.add(axes);
 
   //Creates the orbit controls (to navigate the scene)
-  const controls = new OrbitControls(SceneStore.camera, SceneStore.threeCanvas);
+  const controls = new OrbitControls(SceneStore.camera, threeCanvas);
   controls.enableDamping = false;
   controls.target.set(-2, 0, 0);
   SceneStore.setControls(controls);
@@ -85,20 +87,20 @@ export default function buildScene() {
   // statsWindow.classList.add("stats");
   // document.body.appendChild(statsWindow);
 
-  // //Animation loop
-  // const animate = () => {
-  //   stats.begin();
+  //Animation loop
+  const animate = () => {
+    // stats.begin();
 
-  //   cameraFocalPoint();
+    cameraFocalPoint();
 
-  //   controls.update();
-  //   renderer.render(SceneStore.scene, SceneStore.camera);
-  //   labelRenderer.render(SceneStore.scene, SceneStore.camera);
+    controls.update();
+    renderer.render(SceneStore.scene, SceneStore.camera);
+    labelRenderer.render(SceneStore.scene, SceneStore.camera);
 
-  //   stats.end();
+    // stats.end();
 
-  //   requestAnimationFrame(animate);
-  // };
+    requestAnimationFrame(animate);
+  };
 
   /**
    * 

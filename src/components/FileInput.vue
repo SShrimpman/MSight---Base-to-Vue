@@ -1,6 +1,6 @@
 <template>
     <input type="file" ref="fileInputRef" id="file-input" accept=".ifc, .ifcXML, .ifcZIP" multiple @change="uploadAndHide"> 
-    <button id="input-button" @click.prevent="$refs[fileInputRef].click()">Select File</button>
+    <button id="input-button" ref="buttonInput" @click.prevent="$refs[fileInputRef].click()">Select File</button>
 </template>
 
 <script>
@@ -14,13 +14,16 @@ export default {
     data(){
         return{
             fileInputRef: "fileInputRef",
+            buttonInput: "buttonInput",
         }
     },
     methods: {
         async uploadAndHide(event) {
             const fileInput = this.$refs[this.fileInputRef];
+            const buttonInput = this.$refs[this.buttonInput];
             nextTick(() => {
                 fileInput.classList.add("hidden")
+                buttonInput.classList.add("hidden")
             })
             emitGlobalEvent("loading");
             await loadModels(event);

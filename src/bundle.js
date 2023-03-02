@@ -102228,13 +102228,16 @@ var script$2 = {
     data(){
         return {
             fileInputRef: "fileInputRef",
+            buttonInput: "buttonInput",
         }
     },
     methods: {
         async uploadAndHide(event) {
             const fileInput = this.$refs[this.fileInputRef];
+            const buttonInput = this.$refs[this.buttonInput];
             nextTick(() => {
                 fileInput.classList.add("hidden");
+                buttonInput.classList.add("hidden");
             });
             emitGlobalEvent("loading");
             await loadModels(event);
@@ -102254,8 +102257,9 @@ function render$2(_ctx, _cache, $props, $setup, $data, $options) {
     }, null, 544 /* HYDRATE_EVENTS, NEED_PATCH */),
     createBaseVNode("button", {
       id: "input-button",
+      ref: "buttonInput",
       onClick: _cache[1] || (_cache[1] = withModifiers($event => (_ctx.$refs[$data.fileInputRef].click()), ["prevent"]))
-    }, "Select File")
+    }, "Select File", 512 /* NEED_PATCH */)
   ], 64 /* STABLE_FRAGMENT */))
 }
 

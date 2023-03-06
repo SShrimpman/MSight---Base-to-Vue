@@ -6,16 +6,10 @@ export default {
         }
     },
     computed: {
-        // loadingStatus() {
-        // return this.$store.getters.loadingStatus
-        // }
         showLoading(){
             return this.$store.state.showLoading;
         }
     },
-    mounted() {
-        // this.$store.dispatch('setLoadingStatus', true) 
-    }
 }
 </script>
 

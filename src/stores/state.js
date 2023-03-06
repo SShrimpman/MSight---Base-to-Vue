@@ -13,13 +13,9 @@ export default createStore({
         }
     },
     actions: {
-        // setLoadingStatus: ({ commit }, status) => {
-        //     commit('setLoadingStatus', status)
-        // },
+        
     },
     getters: {
-        // loadingStatus: (state) => {
-        //     return state.loading
-        // },
+
     }
 })

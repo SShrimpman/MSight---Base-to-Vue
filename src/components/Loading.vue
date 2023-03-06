@@ -1,15 +1,26 @@
 <script>
 export default {
+    data() {
+        return {
+            modal: "modal",
+        }
+    },
+    computed: {
+        // loadingStatus() {
+        // return this.$store.getters.loadingStatus
+        // }
+        showLoading(){
+            return this.$store.state.showLoading;
+        }
+    },
     mounted() {
-        this.$refs.modal.addEventListener('loading', () => {
-            this.$refs.modal.classList.remove('hidden');
-        });
+        // this.$store.dispatch('setLoadingStatus', true) 
     }
 }
 </script>
 
 <template>
-    <div id="modal" ref="modal" class="modal hidden">
+    <div id="modal" ref="modal" class="modal" :class="{ hidden: !showLoading }">
         <div class="modal-loading-container">
             <div class="cube-container">
                 <div class="h1Container">

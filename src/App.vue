@@ -2,28 +2,31 @@
 import FileInput from '../src/components/FileInput.vue';
 import Loading from '../src/components/Loading.vue'
 import buildScene from '../src/helpers/builders/buildScene'
+import { mapMutations } from 'vuex';
 
 export default {
-  methods: {
-    buildScene() {
-      buildScene()
-    }
-  },
   components: {
     Loading,
     FileInput
   },
+  computed: {
+    showLoading(){
+      return this.$store.state.showLoading;
+    }
+  },
+  methods: {
+    ...mapMutations(['toggleLoading', 'hideLoading'])
+  },
   mounted() {
-    this.buildScene()
+    buildScene()
   }
 }
 </script>
 
 <template>
   <canvas id="three-canvas"></canvas>
-  <!-- <canvas id="three-canvas"></canvas> -->
-  <Loading/>
-  <FileInput/>
+  <FileInput @file-uploaded="toggleLoading" @file-rendered="hideLoading"/>
+  <Loading v-if="showLoading"/>
 </template>
 
 <style scoped>

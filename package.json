@@ -21,6 +21,7 @@
     "three-mesh-bvh": "^0.5.23",
     "toolcool-color-picker": "^1.0.13",
     "vue": "^3.2.45",
+    "vuex": "^4.0.0",
     "web-ifc-three": "^0.0.118",
     "web-ifc-viewer": "^1.0.213"
   },

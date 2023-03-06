@@ -5,10 +5,7 @@
 
 <script>
 import { nextTick } from "vue";
-import { emitGlobalEvent } from "../helpers/emitEvent"
 import loadModels from "../helpers/loadModels"
-
-// const inputBtn = document.getElementById('input-button');
 
 export default {
     data(){
@@ -17,16 +14,18 @@ export default {
             buttonInput: "buttonInput",
         }
     },
+    created() {
+        console.log(this.$store.state.loading)
+    },
     methods: {
         async uploadAndHide(event) {
-            const fileInput = this.$refs[this.fileInputRef];
             const buttonInput = this.$refs[this.buttonInput];
             nextTick(() => {
-                fileInput.classList.add("hidden")
                 buttonInput.classList.add("hidden")
             })
-            emitGlobalEvent("loading");
+            this.$emit('file-uploaded')
             await loadModels(event);
+            this.$emit('file-rendered')
         },
     }
 }

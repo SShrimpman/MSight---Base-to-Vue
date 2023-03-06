@@ -33,7 +33,7 @@ function normalizeStyle(value) {
     else if (isString(value)) {
         return value;
     }
-    else if (isObject(value)) {
+    else if (isObject$1(value)) {
         return value;
     }
 }
@@ -66,7 +66,7 @@ function normalizeClass(value) {
             }
         }
     }
-    else if (isObject(value)) {
+    else if (isObject$1(value)) {
         for (const name in value) {
             if (value[name]) {
                 res += name + ' ';
@@ -157,9 +157,9 @@ const isSet = (val) => toTypeString(val) === '[object Set]';
 const isFunction = (val) => typeof val === 'function';
 const isString = (val) => typeof val === 'string';
 const isSymbol = (val) => typeof val === 'symbol';
-const isObject = (val) => val !== null && typeof val === 'object';
-const isPromise = (val) => {
-    return isObject(val) && isFunction(val.then) && isFunction(val.catch);
+const isObject$1 = (val) => val !== null && typeof val === 'object';
+const isPromise$1 = (val) => {
+    return isObject$1(val) && isFunction(val.then) && isFunction(val.catch);
 };
 const objectToString = Object.prototype.toString;
 const toTypeString = (value) => objectToString.call(value);
@@ -706,7 +706,7 @@ function createGetter(isReadonly = false, shallow = false) {
             // ref unwrapping - skip unwrap for Array + integer key.
             return targetIsArray && isIntegerKey(key) ? res : res.value;
         }
-        if (isObject(res)) {
+        if (isObject$1(res)) {
             // Convert returned value into a proxy as well. we do the isObject check
             // here to avoid invalid value warning. Also need to lazy access readonly
             // and reactive here to avoid circular dependency.
@@ -1149,7 +1149,7 @@ function shallowReadonly(target) {
     return createReactiveObject(target, true, shallowReadonlyHandlers, shallowReadonlyCollectionHandlers, shallowReadonlyMap);
 }
 function createReactiveObject(target, isReadonly, baseHandlers, collectionHandlers, proxyMap) {
-    if (!isObject(target)) {
+    if (!isObject$1(target)) {
         if ((process.env.NODE_ENV !== 'production')) {
             console.warn(`value cannot be made reactive: ${String(target)}`);
         }
@@ -1198,8 +1198,8 @@ function markRaw(value) {
     def(value, "__v_skip" /* ReactiveFlags.SKIP */, true);
     return value;
 }
-const toReactive = (value) => isObject(value) ? reactive(value) : value;
-const toReadonly = (value) => isObject(value) ? readonly(value) : value;
+const toReactive = (value) => isObject$1(value) ? reactive(value) : value;
+const toReadonly = (value) => isObject$1(value) ? readonly(value) : value;
 
 function trackRefValue(ref) {
     if (shouldTrack && activeEffect) {
@@ -1476,7 +1476,7 @@ function callWithErrorHandling(fn, instance, type, args) {
 function callWithAsyncErrorHandling(fn, instance, type, args) {
     if (isFunction(fn)) {
         const res = callWithErrorHandling(fn, instance, type, args);
-        if (res && isPromise(res)) {
+        if (res && isPromise$1(res)) {
             res.catch(err => {
                 handleError(err, instance, type);
             });
@@ -2066,7 +2066,7 @@ function normalizeEmitsOptions(comp, appContext, asMixin = false) {
         }
     }
     if (!raw && !hasExtends) {
-        if (isObject(comp)) {
+        if (isObject$1(comp)) {
             cache.set(comp, null);
         }
         return null;
@@ -2077,7 +2077,7 @@ function normalizeEmitsOptions(comp, appContext, asMixin = false) {
     else {
         extend(normalized, raw);
     }
-    if (isObject(comp)) {
+    if (isObject$1(comp)) {
         cache.set(comp, normalized);
     }
     return normalized;
@@ -2774,7 +2774,7 @@ function createPathGetter(ctx, path) {
     };
 }
 function traverse(value, seen) {
-    if (!isObject(value) || value["__v_skip" /* ReactiveFlags.SKIP */]) {
+    if (!isObject$1(value) || value["__v_skip" /* ReactiveFlags.SKIP */]) {
         return value;
     }
     seen = seen || new Set();
@@ -2801,347 +2801,6 @@ function traverse(value, seen) {
         }
     }
     return value;
-}
-
-function useTransitionState() {
-    const state = {
-        isMounted: false,
-        isLeaving: false,
-        isUnmounting: false,
-        leavingVNodes: new Map()
-    };
-    onMounted(() => {
-        state.isMounted = true;
-    });
-    onBeforeUnmount(() => {
-        state.isUnmounting = true;
-    });
-    return state;
-}
-const TransitionHookValidator = [Function, Array];
-const BaseTransitionImpl = {
-    name: `BaseTransition`,
-    props: {
-        mode: String,
-        appear: Boolean,
-        persisted: Boolean,
-        // enter
-        onBeforeEnter: TransitionHookValidator,
-        onEnter: TransitionHookValidator,
-        onAfterEnter: TransitionHookValidator,
-        onEnterCancelled: TransitionHookValidator,
-        // leave
-        onBeforeLeave: TransitionHookValidator,
-        onLeave: TransitionHookValidator,
-        onAfterLeave: TransitionHookValidator,
-        onLeaveCancelled: TransitionHookValidator,
-        // appear
-        onBeforeAppear: TransitionHookValidator,
-        onAppear: TransitionHookValidator,
-        onAfterAppear: TransitionHookValidator,
-        onAppearCancelled: TransitionHookValidator
-    },
-    setup(props, { slots }) {
-        const instance = getCurrentInstance();
-        const state = useTransitionState();
-        let prevTransitionKey;
-        return () => {
-            const children = slots.default && getTransitionRawChildren(slots.default(), true);
-            if (!children || !children.length) {
-                return;
-            }
-            let child = children[0];
-            if (children.length > 1) {
-                let hasFound = false;
-                // locate first non-comment child
-                for (const c of children) {
-                    if (c.type !== Comment) {
-                        if ((process.env.NODE_ENV !== 'production') && hasFound) {
-                            // warn more than one non-comment child
-                            warn('<transition> can only be used on a single element or component. ' +
-                                'Use <transition-group> for lists.');
-                            break;
-                        }
-                        child = c;
-                        hasFound = true;
-                        if (!(process.env.NODE_ENV !== 'production'))
-                            break;
-                    }
-                }
-            }
-            // there's no need to track reactivity for these props so use the raw
-            // props for a bit better perf
-            const rawProps = toRaw(props);
-            const { mode } = rawProps;
-            // check mode
-            if ((process.env.NODE_ENV !== 'production') &&
-                mode &&
-                mode !== 'in-out' &&
-                mode !== 'out-in' &&
-                mode !== 'default') {
-                warn(`invalid <transition> mode: ${mode}`);
-            }
-            if (state.isLeaving) {
-                return emptyPlaceholder(child);
-            }
-            // in the case of <transition><keep-alive/></transition>, we need to
-            // compare the type of the kept-alive children.
-            const innerChild = getKeepAliveChild(child);
-            if (!innerChild) {
-                return emptyPlaceholder(child);
-            }
-            const enterHooks = resolveTransitionHooks(innerChild, rawProps, state, instance);
-            setTransitionHooks(innerChild, enterHooks);
-            const oldChild = instance.subTree;
-            const oldInnerChild = oldChild && getKeepAliveChild(oldChild);
-            let transitionKeyChanged = false;
-            const { getTransitionKey } = innerChild.type;
-            if (getTransitionKey) {
-                const key = getTransitionKey();
-                if (prevTransitionKey === undefined) {
-                    prevTransitionKey = key;
-                }
-                else if (key !== prevTransitionKey) {
-                    prevTransitionKey = key;
-                    transitionKeyChanged = true;
-                }
-            }
-            // handle mode
-            if (oldInnerChild &&
-                oldInnerChild.type !== Comment &&
-                (!isSameVNodeType(innerChild, oldInnerChild) || transitionKeyChanged)) {
-                const leavingHooks = resolveTransitionHooks(oldInnerChild, rawProps, state, instance);
-                // update old tree's hooks in case of dynamic transition
-                setTransitionHooks(oldInnerChild, leavingHooks);
-                // switching between different views
-                if (mode === 'out-in') {
-                    state.isLeaving = true;
-                    // return placeholder node and queue update when leave finishes
-                    leavingHooks.afterLeave = () => {
-                        state.isLeaving = false;
-                        // #6835
-                        // it also needs to be updated when active is undefined
-                        if (instance.update.active !== false) {
-                            instance.update();
-                        }
-                    };
-                    return emptyPlaceholder(child);
-                }
-                else if (mode === 'in-out' && innerChild.type !== Comment) {
-                    leavingHooks.delayLeave = (el, earlyRemove, delayedLeave) => {
-                        const leavingVNodesCache = getLeavingNodesForType(state, oldInnerChild);
-                        leavingVNodesCache[String(oldInnerChild.key)] = oldInnerChild;
-                        // early removal callback
-                        el._leaveCb = () => {
-                            earlyRemove();
-                            el._leaveCb = undefined;
-                            delete enterHooks.delayedLeave;
-                        };
-                        enterHooks.delayedLeave = delayedLeave;
-                    };
-                }
-            }
-            return child;
-        };
-    }
-};
-// export the public type for h/tsx inference
-// also to avoid inline import() in generated d.ts files
-const BaseTransition = BaseTransitionImpl;
-function getLeavingNodesForType(state, vnode) {
-    const { leavingVNodes } = state;
-    let leavingVNodesCache = leavingVNodes.get(vnode.type);
-    if (!leavingVNodesCache) {
-        leavingVNodesCache = Object.create(null);
-        leavingVNodes.set(vnode.type, leavingVNodesCache);
-    }
-    return leavingVNodesCache;
-}
-// The transition hooks are attached to the vnode as vnode.transition
-// and will be called at appropriate timing in the renderer.
-function resolveTransitionHooks(vnode, props, state, instance) {
-    const { appear, mode, persisted = false, onBeforeEnter, onEnter, onAfterEnter, onEnterCancelled, onBeforeLeave, onLeave, onAfterLeave, onLeaveCancelled, onBeforeAppear, onAppear, onAfterAppear, onAppearCancelled } = props;
-    const key = String(vnode.key);
-    const leavingVNodesCache = getLeavingNodesForType(state, vnode);
-    const callHook = (hook, args) => {
-        hook &&
-            callWithAsyncErrorHandling(hook, instance, 9 /* ErrorCodes.TRANSITION_HOOK */, args);
-    };
-    const callAsyncHook = (hook, args) => {
-        const done = args[1];
-        callHook(hook, args);
-        if (isArray(hook)) {
-            if (hook.every(hook => hook.length <= 1))
-                done();
-        }
-        else if (hook.length <= 1) {
-            done();
-        }
-    };
-    const hooks = {
-        mode,
-        persisted,
-        beforeEnter(el) {
-            let hook = onBeforeEnter;
-            if (!state.isMounted) {
-                if (appear) {
-                    hook = onBeforeAppear || onBeforeEnter;
-                }
-                else {
-                    return;
-                }
-            }
-            // for same element (v-show)
-            if (el._leaveCb) {
-                el._leaveCb(true /* cancelled */);
-            }
-            // for toggled element with same key (v-if)
-            const leavingVNode = leavingVNodesCache[key];
-            if (leavingVNode &&
-                isSameVNodeType(vnode, leavingVNode) &&
-                leavingVNode.el._leaveCb) {
-                // force early removal (not cancelled)
-                leavingVNode.el._leaveCb();
-            }
-            callHook(hook, [el]);
-        },
-        enter(el) {
-            let hook = onEnter;
-            let afterHook = onAfterEnter;
-            let cancelHook = onEnterCancelled;
-            if (!state.isMounted) {
-                if (appear) {
-                    hook = onAppear || onEnter;
-                    afterHook = onAfterAppear || onAfterEnter;
-                    cancelHook = onAppearCancelled || onEnterCancelled;
-                }
-                else {
-                    return;
-                }
-            }
-            let called = false;
-            const done = (el._enterCb = (cancelled) => {
-                if (called)
-                    return;
-                called = true;
-                if (cancelled) {
-                    callHook(cancelHook, [el]);
-                }
-                else {
-                    callHook(afterHook, [el]);
-                }
-                if (hooks.delayedLeave) {
-                    hooks.delayedLeave();
-                }
-                el._enterCb = undefined;
-            });
-            if (hook) {
-                callAsyncHook(hook, [el, done]);
-            }
-            else {
-                done();
-            }
-        },
-        leave(el, remove) {
-            const key = String(vnode.key);
-            if (el._enterCb) {
-                el._enterCb(true /* cancelled */);
-            }
-            if (state.isUnmounting) {
-                return remove();
-            }
-            callHook(onBeforeLeave, [el]);
-            let called = false;
-            const done = (el._leaveCb = (cancelled) => {
-                if (called)
-                    return;
-                called = true;
-                remove();
-                if (cancelled) {
-                    callHook(onLeaveCancelled, [el]);
-                }
-                else {
-                    callHook(onAfterLeave, [el]);
-                }
-                el._leaveCb = undefined;
-                if (leavingVNodesCache[key] === vnode) {
-                    delete leavingVNodesCache[key];
-                }
-            });
-            leavingVNodesCache[key] = vnode;
-            if (onLeave) {
-                callAsyncHook(onLeave, [el, done]);
-            }
-            else {
-                done();
-            }
-        },
-        clone(vnode) {
-            return resolveTransitionHooks(vnode, props, state, instance);
-        }
-    };
-    return hooks;
-}
-// the placeholder really only handles one special case: KeepAlive
-// in the case of a KeepAlive in a leave phase we need to return a KeepAlive
-// placeholder with empty content to avoid the KeepAlive instance from being
-// unmounted.
-function emptyPlaceholder(vnode) {
-    if (isKeepAlive(vnode)) {
-        vnode = cloneVNode(vnode);
-        vnode.children = null;
-        return vnode;
-    }
-}
-function getKeepAliveChild(vnode) {
-    return isKeepAlive(vnode)
-        ? vnode.children
-            ? vnode.children[0]
-            : undefined
-        : vnode;
-}
-function setTransitionHooks(vnode, hooks) {
-    if (vnode.shapeFlag & 6 /* ShapeFlags.COMPONENT */ && vnode.component) {
-        setTransitionHooks(vnode.component.subTree, hooks);
-    }
-    else if (vnode.shapeFlag & 128 /* ShapeFlags.SUSPENSE */) {
-        vnode.ssContent.transition = hooks.clone(vnode.ssContent);
-        vnode.ssFallback.transition = hooks.clone(vnode.ssFallback);
-    }
-    else {
-        vnode.transition = hooks;
-    }
-}
-function getTransitionRawChildren(children, keepComment = false, parentKey) {
-    let ret = [];
-    let keyedFragmentCount = 0;
-    for (let i = 0; i < children.length; i++) {
-        let child = children[i];
-        // #5360 inherit parent key in case of <template v-for>
-        const key = parentKey == null
-            ? child.key
-            : String(parentKey) + String(child.key != null ? child.key : i);
-        // handle fragment children case, e.g. v-for
-        if (child.type === Fragment) {
-            if (child.patchFlag & 128 /* PatchFlags.KEYED_FRAGMENT */)
-                keyedFragmentCount++;
-            ret = ret.concat(getTransitionRawChildren(child.children, keepComment, key));
-        }
-        // comment placeholders should be skipped, e.g. v-if
-        else if (keepComment || child.type !== Comment) {
-            ret.push(key != null ? cloneVNode(child, { key }) : child);
-        }
-    }
-    // #1126 if a transition children list contains multiple sub fragments, these
-    // fragments will be merged into a flat children array. Since each v-for
-    // fragment may contain different static bindings inside, we need to de-op
-    // these children to force full diffs to ensure correct behavior.
-    if (keyedFragmentCount > 1) {
-        for (let i = 0; i < ret.length; i++) {
-            ret[i].patchFlag = -2 /* PatchFlags.BAIL */;
-        }
-    }
-    return ret;
 }
 
 const isAsyncWrapper = (i) => !!i.type.__asyncLoader;
@@ -3690,12 +3349,12 @@ function applyOptions(instance) {
                 `Plain object usage is no longer supported.`);
         }
         const data = dataOptions.call(publicThis, publicThis);
-        if ((process.env.NODE_ENV !== 'production') && isPromise(data)) {
+        if ((process.env.NODE_ENV !== 'production') && isPromise$1(data)) {
             warn(`data() returned a Promise - note data() cannot be async; If you ` +
                 `intend to perform data fetching before component renders, use ` +
                 `async setup() + <Suspense>.`);
         }
-        if (!isObject(data)) {
+        if (!isObject$1(data)) {
             (process.env.NODE_ENV !== 'production') && warn(`data() should return an object.`);
         }
         else {
@@ -3822,7 +3481,7 @@ function resolveInjections(injectOptions, ctx, checkDuplicateProperties = NOOP, 
     for (const key in injectOptions) {
         const opt = injectOptions[key];
         let injected;
-        if (isObject(opt)) {
+        if (isObject$1(opt)) {
             if ('default' in opt) {
                 injected = inject(opt.from || key, opt.default, true /* treat default function as factory */);
             }
@@ -3883,7 +3542,7 @@ function createWatcher(raw, ctx, publicThis, key) {
     else if (isFunction(raw)) {
         watch(getter, raw.bind(publicThis));
     }
-    else if (isObject(raw)) {
+    else if (isObject$1(raw)) {
         if (isArray(raw)) {
             raw.forEach(r => createWatcher(r, ctx, publicThis, key));
         }
@@ -3929,7 +3588,7 @@ function resolveMergedOptions(instance) {
         }
         mergeOptions(resolved, base, optionMergeStrategies);
     }
-    if (isObject(base)) {
+    if (isObject$1(base)) {
         cache.set(base, resolved);
     }
     return resolved;
@@ -4270,7 +3929,7 @@ function normalizePropsOptions(comp, appContext, asMixin = false) {
         }
     }
     if (!raw && !hasExtends) {
-        if (isObject(comp)) {
+        if (isObject$1(comp)) {
             cache.set(comp, EMPTY_ARR);
         }
         return EMPTY_ARR;
@@ -4287,7 +3946,7 @@ function normalizePropsOptions(comp, appContext, asMixin = false) {
         }
     }
     else if (raw) {
-        if ((process.env.NODE_ENV !== 'production') && !isObject(raw)) {
+        if ((process.env.NODE_ENV !== 'production') && !isObject$1(raw)) {
             warn(`invalid props options`, raw);
         }
         for (const key in raw) {
@@ -4311,7 +3970,7 @@ function normalizePropsOptions(comp, appContext, asMixin = false) {
         }
     }
     const res = [normalized, needCastKeys];
-    if (isObject(comp)) {
+    if (isObject$1(comp)) {
         cache.set(comp, res);
     }
     return res;
@@ -4407,7 +4066,7 @@ function assertType(value, type) {
         }
     }
     else if (expectedType === 'Object') {
-        valid = isObject(value);
+        valid = isObject$1(value);
     }
     else if (expectedType === 'Array') {
         valid = isArray(value);
@@ -4625,7 +4284,7 @@ function createAppAPI(render, hydrate) {
         if (!isFunction(rootComponent)) {
             rootComponent = Object.assign({}, rootComponent);
         }
-        if (rootProps != null && !isObject(rootProps)) {
+        if (rootProps != null && !isObject$1(rootProps)) {
             (process.env.NODE_ENV !== 'production') && warn(`root props passed to app.mount() must be an object.`);
             rootProps = null;
         }
@@ -6508,7 +6167,7 @@ function _createVNode(type, props = null, children = null, patchFlag = 0, dynami
         if (klass && !isString(klass)) {
             props.class = normalizeClass(klass);
         }
-        if (isObject(style)) {
+        if (isObject$1(style)) {
             // reactive state objects need to be cloned since they are likely to be
             // mutated
             if (isProxy(style) && !isArray(style)) {
@@ -6524,7 +6183,7 @@ function _createVNode(type, props = null, children = null, patchFlag = 0, dynami
             ? 128 /* ShapeFlags.SUSPENSE */
             : isTeleport(type)
                 ? 64 /* ShapeFlags.TELEPORT */
-                : isObject(type)
+                : isObject$1(type)
                     ? 4 /* ShapeFlags.STATEFUL_COMPONENT */
                     : isFunction(type)
                         ? 2 /* ShapeFlags.FUNCTIONAL_COMPONENT */
@@ -6854,7 +6513,6 @@ function createComponentInstance(vnode, parent, suspense) {
     return instance;
 }
 let currentInstance = null;
-const getCurrentInstance = () => currentInstance || currentRenderingInstance;
 const setCurrentInstance = (instance) => {
     currentInstance = instance;
     instance.scope.on();
@@ -6929,7 +6587,7 @@ function setupStatefulComponent(instance, isSSR) {
         const setupResult = callWithErrorHandling(setup, instance, 0 /* ErrorCodes.SETUP_FUNCTION */, [(process.env.NODE_ENV !== 'production') ? shallowReadonly(instance.props) : instance.props, setupContext]);
         resetTracking();
         unsetCurrentInstance();
-        if (isPromise(setupResult)) {
+        if (isPromise$1(setupResult)) {
             setupResult.then(unsetCurrentInstance, unsetCurrentInstance);
             if (isSSR) {
                 // return the promise so server-renderer can wait on it
@@ -6974,7 +6632,7 @@ function handleSetupResult(instance, setupResult, isSSR) {
             instance.render = setupResult;
         }
     }
-    else if (isObject(setupResult)) {
+    else if (isObject$1(setupResult)) {
         if ((process.env.NODE_ENV !== 'production') && isVNode(setupResult)) {
             warn(`setup() should not return VNodes directly - ` +
                 `return a render function instead.`);
@@ -7212,7 +6870,7 @@ function initCustomFormatter() {
     const formatter = {
         header(obj) {
             // TODO also format ComponentPublicInstance & ctx.slots/attrs in setup
-            if (!isObject(obj)) {
+            if (!isObject$1(obj)) {
                 return null;
             }
             if (obj.__isVue) {
@@ -7337,7 +6995,7 @@ function initCustomFormatter() {
         else if (typeof v === 'boolean') {
             return ['span', keywordStyle, v];
         }
-        else if (isObject(v)) {
+        else if (isObject$1(v)) {
             return ['object', { object: asRaw ? toRaw(v) : v }];
         }
         else {
@@ -7360,7 +7018,7 @@ function initCustomFormatter() {
     function isKeyOfType(Comp, key, type) {
         const opts = Comp[type];
         if ((isArray(opts) && opts.includes(key)) ||
-            (isObject(opts) && key in opts)) {
+            (isObject$1(opts) && key in opts)) {
             return true;
         }
         if (Comp.extends && isKeyOfType(Comp.extends, key, type)) {
@@ -7826,25 +7484,6 @@ function shouldSetAsProp(el, key, value, isSVG) {
     }
     return key in el;
 }
-const DOMTransitionPropsValidators = {
-    name: String,
-    type: String,
-    css: {
-        type: Boolean,
-        default: true
-    },
-    duration: [String, Number, Object],
-    enterFromClass: String,
-    enterActiveClass: String,
-    enterToClass: String,
-    appearFromClass: String,
-    appearActiveClass: String,
-    appearToClass: String,
-    leaveFromClass: String,
-    leaveActiveClass: String,
-    leaveToClass: String
-};
-(/*#__PURE__*/ extend({}, BaseTransition.props, DOMTransitionPropsValidators));
 
 const systemModifiers = ['ctrl', 'shift', 'alt', 'meta'];
 const modifierGuards = {
@@ -7922,7 +7561,7 @@ function injectNativeTagCheck(app) {
 }
 // dev only
 function injectCompilerOptionsCheck(app) {
-    if (isRuntimeOnly()) {
+    {
         const isCustomElement = app.config.isCustomElement;
         Object.defineProperty(app.config, 'isCustomElement', {
             get() {
@@ -8009,11 +7648,6 @@ function styleInject(css, ref) {
 
 var css_248z$3 = ":root{--primary-color:#1a6dff;--primary-color-dark:#152243;--primary-color-light:#9fd1ff;--primary-color-light-transparent:#9fd1ff49;--transparent-background-light:hsla(0,0%,100%,.8);--transparent-background-dark:rgba(0,20,20,.8);--grayed:#9a9a9a;--lightgray:#f0f0f0;--scroll-bar-color:#c5c5c5;--scroll-bar-bg-color:transparent;--border-radius-small:4px;--border-radius-regular:8px;--font-family:Montserrat;--transition-main-timer:0.28s}*{box-sizing:border-box;margin:0;padding:0;scrollbar-color:var(--scroll-bar-color) var(--scroll-bar-bg-color);scrollbar-width:thin}::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--scroll-bar-bg-color)}::-webkit-scrollbar-thumb{background-color:var(--scroll-bar-color);border:3px solid var(--scroll-bar-bg-color);border-radius:20px}body,html{font-family:var(--font-family);overflow:hidden}.styling-form{align-items:center;display:grid;gap:16px;grid-template-columns:max-content 1fr}.styling-form .styling-form-input{border:1px solid #d3d3d3;border-radius:var(--border-radius-small);box-shadow:0 1px 3px 0 rgba(0,0,0,.1),0 1px 2px -1px rgba(0,0,0,.1);height:30px}.styling-form .styling-form-input[type=text]{text-align:center}.styling-form-select-plus-add{align-items:center;display:grid;gap:8px;grid-template-columns:1fr auto}.styling-form-select-plus-add.annotation-category-selector li{display:grid;grid-template-columns:74px 1fr}.styling-form-icon{cursor:pointer;transition:all var(--transition-main-timer)}.styling-form-icon:hover{transform:scale(1.1);transition:all var(--transition-main-timer)}.styling-form>.styling-form-warning{color:red;display:grid;grid-column:span 2;place-items:center;width:100%}.styling-form>.styling-form-warning>span{color:red;text-align:center;width:100%}.styling-form-submit{background-color:var(--primary-color-dark);border:none;border-radius:var(--border-radius-small);color:#fff;cursor:pointer;grid-column:span 2;height:30px;transition:all var(--transition-main-timer)}.styling-form-submit:hover{box-shadow:0 0 4px 4px var(--primary-color-light-transparent);transform:scaleX(1.02);transition:all var(--transition-main-timer)}.styling-form-color-picker-wrapper{height:180px}.styling-form-select{align-items:center;cursor:pointer;display:grid;font-size:14px;grid-template-columns:1fr 25px;position:relative}.styling-form-select>span{overflow:hidden;padding:0 4px;text-overflow:ellipsis;white-space:nowrap}.styling-form-select>img{transform:rotate(90deg)}.styling-form-select>ul{background-color:#fff;border:1px solid #d3d3d3;border-radius:var(--border-radius-small);border-top-left-radius:0;border-top-right-radius:0;display:grid;grid-column:span 2;left:50%;list-style:none;max-height:30vh;overflow-y:scroll;padding:4px 0;position:absolute;top:100%;transform:translate(-50%);width:98%;z-index:99}.styling-form-select>ul>li{align-items:center;display:flex;gap:8px;height:24px;padding:0 8px;transition:background-color var(--transition-main-timer);width:100%}.styling-form-select>ul>li>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.styling-form-select>ul>li:hover{background-color:var(--primary-color-light-transparent);transition:background-color var(--transition-main-timer)}.annotation-category-select-colortag{display:grid;font-size:12px;height:100%;place-items:center;width:calc(100% - 8px)}.annotation-category-select-colortag.undefined{border:1px dashed var(--grayed)}.styling-menu-extras{display:grid;font-size:13px;height:25px;overflow:visible;place-items:center;position:relative;width:30px}.styling-menu-extras>img,.styling-menu-extras>img:hover{transition:all var(--transition-main-timer)}.styling-menu-extras>img:hover{transform:scale(1.1)}.styling-menu-extras.active{background-color:#fff;border:1px solid var(--grayed);border-radius:var(--border-radius-small) var(--border-radius-small) 0 0}.styling-menu-extras>ul.styling-menu-extras-list{background-color:#fff;border:1px solid var(--grayed);border-radius:var(--border-radius-small) 0 var(--border-radius-small) var(--border-radius-small);left:0;list-style:none;opacity:0;padding:8px;position:fixed;top:0;width:max-content}.styling-menu-extras.active>ul.styling-menu-extras-list{opacity:100%;z-index:1}.styling-menu-extras>ul.styling-menu-extras-list>li{border:none;border-bottom:1px solid #d3d3d3;box-shadow:inset 18px 0 20px 0 #fff;padding:4px 0!important}.styling-menu-extras>ul.styling-menu-extras-list>li:last-child{border-bottom:none}.styling-menu-extras>ul.styling-menu-extras-list>li:hover{background:linear-gradient(-90deg,#fff,#fff,var(--primary-color-light));background-color:var(--primary-color-light-transparent);background-size:200% 200%;transition:all .5s}.tools-side-container{background-color:transparent;display:inline-block;font-family:var(--font-family);height:100vh;overflow-y:scroll;padding:10px;position:absolute;z-index:1}.tools-side-content{display:grid;gap:21px}.tools-side-feature{border:none;border-radius:var(--border-radius-regular);display:grid;filter:drop-shadow(0 8px 6px rgba(0,0,0,.08));max-width:340px;overflow:hidden;place-items:start}.tools-side-feature-icon{background-color:var(--primary-color-dark);border-radius:var(--border-radius-regular);box-shadow:none;display:grid;height:40px;padding:8px;place-items:center;width:40px;z-index:99}.tools-side-feature-icon.not-ready{cursor:not-allowed;opacity:50%}.tools-side-feature>:not(.tools-side-feature-icon){display:none}.tools-side-feature-header{color:#fff;font-weight:700;user-select:none;width:100%}.tools-side-feature-close{cursor:pointer;height:24px;margin:0 10px 0 5px}.tools-side-feature-name{background-color:var(--primary-color-light);color:#fff;font-weight:500;grid-column:span 3;overflow:hidden;padding:5px 10px;user-select:none;width:100%;word-break:break-word}.tools-side-feature.feature-active{background-color:var(--primary-color-dark);border-radius:var(--border-radius-regular);font-size:16px;grid-template-columns:40px auto 39px;line-height:20px;overflow:visible;place-items:center}.tools-side-feature.opening{animation:sidetools-feature-active .5s;overflow:hidden}.tools-side-feature.closing{animation:sidetools-feature-active .5s reverse;overflow:hidden}.tools-side-feature.feature-active>:not(.tools-side-feature-icon){display:block}.tools-side-feature-content{background-color:#fff;border-radius:0 0 var(--border-radius-regular) var(--border-radius-regular);grid-column:span 3}.tools-side-properties-tabs{box-shadow:inset 0 -1px 0 0 #d3d3d3;color:var(--grayed);display:flex;font-size:14px;justify-content:space-between;padding:0 10px}.tools-side-properties-tab{box-sizing:border-box;cursor:pointer;padding:5px 0 3px;transition:color 1s}.tools-side-properties-tab.tab-active{border-bottom:1px solid var(--primary-color);color:#000;font-weight:500;position:relative;transition:color 1s}.tools-side-properties-content-container{padding:10px 0}.tools-side-properties-header{background-color:var(--primary-color-dark);color:#fff;font-size:12px;font-weight:700;line-height:20px;padding:0 10px;width:100%}.tools-side-properties-table-wrapper{padding:15px 10px 10px}.tools-side-properties-table{list-style-type:none;text-align:left;width:100%}.tools-side-properties-table li{align-items:center;border-bottom:1px solid var(--grayed);display:grid;font-size:10px;grid-template-columns:100px 1fr}.tools-side-properties-table li:first-child{color:#000;font-size:12px;font-weight:700}.tools-side-properties-table li>:not(:first-child){width:100%}.tools-side-properties-table li span{line-height:20px;padding:2px 5px}.tools-side-properties-table li span:first-child{height:max-content}.tree-container{height:100%;line-height:20px;padding-right:8px;width:100%}.spatial-tree-toolbar{display:flex;justify-content:end;padding-bottom:2px}.tree-container span{display:block;font-size:11px;padding-left:5px;user-select:none;width:100%}.tree-container ul>li:first-child{border-top:none;margin:0}.tree-container ul>li:first-child>span{align-items:center;display:flex;font-size:14px;font-weight:500}.tree-container>ul:not(:first-child){margin-top:5px}.tree-container ul{list-style-type:none;margin:0;padding:0}.tree-wrapper>li{border-top:1px solid #d3d3d3}.tree-container li>ul{margin-left:10px}.tree-item{align-items:center;box-shadow:inset 18px 0 20px 0 #fff;cursor:pointer;display:grid;grid-template-columns:1fr max-content max-content max-content;height:25px;transition:all .5s}.tree-item.has-caret{grid-template-columns:max-content 1fr max-content max-content max-content}.tree-item:hover{background:linear-gradient(-90deg,#fff,#fff,var(--primary-color-light));background-color:var(--primary-color-light-transparent);background-size:200% 200%;transition:all .5s}.tree-item span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tree-item.active-selection-leaf{background-color:var(--primary-color-light)}.caret{cursor:pointer;user-select:none}.caret-down>img{transform:rotate(90deg)}.spatial-tree-caret{display:grid;place-items:center}.spatial-tree-caret>img{width:18px}.spatial-tree-icon{cursor:pointer;display:grid;height:100%;margin-left:5px;place-items:center;width:max-content}.spatial-tree-icon img{height:auto;transition:all .4s;width:14px}.spatial-tree-icon img:hover{animation:pulsing 1s ease infinite alternate}.features-floating-buttons{display:flex;gap:40px;left:50%;position:absolute;top:calc(100% - 80px);transform:translateX(-50%);width:max-content}.features-floating-buttons .feature-button{background-color:var(--primary-color-dark);border-radius:var(--border-radius-small);box-shadow:0 1px 1px 0 var(--primary-color);box-shadow:2px 2px 4px rgba(0,0,0,.25);cursor:pointer;display:grid;height:40px;padding:8px;place-items:center;transition:all .6s;width:40px;z-index:99}.features-floating-buttons .feature-button.not-ready{cursor:not-allowed;opacity:50%}.features-floating-buttons .feature-button:not(.not-ready):hover{box-shadow:0 0 4px var(--primary-color-light);transform:scale(1.1);transition:all .6s}.features-floating-buttons .feature-button.active{animation:icon-shadow-pulsing 1s linear infinite alternate;box-shadow:0 0 5px 2px var(--primary-color-light);transform:scale(1.1)}@media only screen and (max-width:444px){.features-floating-buttons{display:flex;gap:0;justify-content:space-evenly;left:50%;position:absolute;top:calc(100% - 80px);transform:translateX(-50%);width:max-content;width:100%}}.popup-header-wrapper{background-color:#fff;border:1px solid var(--primary-color-dark);border-radius:var(--border-radius-regular);display:grid;max-width:80vw}.popup-header-wrapper.popup-header-wrapper-full{height:80%;padding-bottom:10px}.popup-header{border-radius:var(--border-radius-small) var(--border-radius-small) 0 0;color:#fff;font-size:30px;grid-template-columns:60px auto 39px;line-height:20px;overflow:hidden;place-items:center}.popup-header,.popup-header-icon{background-color:var(--primary-color-dark);display:grid}.popup-header-icon{border-radius:var(--border-radius-small);height:60px;padding:8px;place-items:center;width:60px}.popup-header-text{color:#fff;font-weight:700;user-select:none;width:100%}.popup-header-close{cursor:pointer;height:24px;margin:0 10px 0 5px;transition:all .5s}.popup-header-close:hover{transform:scale(1.2);transition:all .5s}.popup-header-subtitle{background-color:var(--primary-color-light);color:#fff;font-size:20px;font-weight:500;grid-column:span 3;overflow:hidden;padding:10px;user-select:none;width:100%;word-break:break-word}.popup-header-content{overflow:scroll;padding:20px;width:100%}.popup-header-wrapper.popup-header-wrapper-full .popup-header-content{margin:20px 0;padding:0 20px}.feature-helper-content-container{display:grid;gap:20px}.feature-helper-tip-container{display:grid;gap:20px;grid-template-columns:auto 1fr;place-items:center;width:100%}.feature-helper-tip-icon{background-color:var(--primary-color-dark);border-radius:var(--border-radius-small);display:grid;height:60px;padding:8px;place-items:center;width:60px}.feature-helper-tip-title{font-size:40px;width:100%}.feature-helper-tip-description{align-self:flex-start;display:grid;font-size:16px;gap:16px;grid-column:2;padding-right:20px;width:100%}.feature-helper-tip-description-line{line-break:strict;line-height:24px;text-align:left}.feature-helper-seperator{background-color:var(--primary-color-light);border-radius:100%;box-shadow:inset 0 0 4px 0 #fff;height:2px;width:100%}@media only screen and (max-width:889px){.popup-header-wrapper{max-width:95%}.popup-header-subtitle{font-size:1rem}.feature-helper-tip-title{font-size:26px}.feature-helper-tip-description,.feature-helper-tip-title{grid-column:span 2;padding:0}}.modal{align-items:center;background-color:var(--transparent-background-dark);display:flex;height:100vh;justify-content:center;left:0;position:fixed;top:0;width:100vw;z-index:99}.context-menu-container{max-width:280px;min-width:120px;padding:4px;position:fixed;width:auto}.context-menu-container:before{background:var(--primary-color);border:1px solid #fff;border-radius:100%;box-shadow:0 0 3px 0 var(--primary-color-dark);content:\" \";display:block;height:5px;left:0;position:absolute;top:0;transform:translate(-50%,-50%);width:5px}#context-menu-list{background-color:#fff;border:1px solid var(--primary-color-dark);border-radius:var(--border-radius-regular);color:var(--primary-color-dark);display:grid;font-size:13px;gap:4px;list-style:none;padding:8px}#context-menu-list>li{box-shadow:inset 18px 0 20px 0 #fff;cursor:pointer;padding:0 4px}#context-menu-list>li:hover{background:linear-gradient(-90deg,#fff,#fff,var(--primary-color-light));background-color:var(--primary-color-light-transparent);background-size:200% 200%}.context-menu-item{list-style:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#context-menu-list>li.context-menu-seperator:not(:last-child){border-bottom:1px solid var(--primary-color-light);padding-bottom:4px}.confirmation-popup-wrapper{display:grid;gap:16px;grid-template-columns:1fr 1fr;max-width:500px;place-items:center}@media only screen and (max-width:889px){.confirmation-popup-wrapper{max-width:100%}}.confirmation-popup-wrapper>span{grid-column:span 2;line-height:28px;padding:8px 4px;text-align:center}.confirmation-popup-wrapper>div{border-color:var(--primary-color-dark);border-radius:var(--border-radius-small);border-style:solid;border-width:1px;cursor:pointer;font-weight:600;padding:8px;text-align:center;transition:all var(--transition-main-timer);width:100%}.confirmation-popup-wrapper>div:hover{transform:scale(1.05);transition:all var(--transition-main-timer)}.confirmation-popup-wrapper .confirm{background-color:green;color:#fff}.confirmation-popup-wrapper .reject{background-color:red;color:#fff}.confirmation-popup-wrapper .cancel{background-color:gray;color:#fff}@keyframes spin{0%{transform:rotate(0deg)}to{transform:rotate(1turn)}}.anim-spinner{animation:spin 1.5s linear infinite}.lds-roller{display:inline-block;height:80px;position:relative;width:80px}.lds-roller div{animation:lds-roller 1.2s cubic-bezier(.5,0,.5,1) infinite;transform-origin:40px 40px}.lds-roller div:after{background:var(--primary-color-dark);border-radius:50%;content:\" \";display:block;height:8px;margin:-4px 0 0 -4px;position:absolute;width:8px}.lds-roller div:first-child{animation-delay:-36ms}.lds-roller div:first-child:after{left:63px;top:63px}.lds-roller div:nth-child(2){animation-delay:-72ms}.lds-roller div:nth-child(2):after{left:56px;top:68px}.lds-roller div:nth-child(3){animation-delay:-.108s}.lds-roller div:nth-child(3):after{left:48px;top:71px}.lds-roller div:nth-child(4){animation-delay:-.144s}.lds-roller div:nth-child(4):after{left:40px;top:72px}.lds-roller div:nth-child(5){animation-delay:-.18s}.lds-roller div:nth-child(5):after{left:32px;top:71px}.lds-roller div:nth-child(6){animation-delay:-.216s}.lds-roller div:nth-child(6):after{left:24px;top:68px}.lds-roller div:nth-child(7){animation-delay:-.252s}.lds-roller div:nth-child(7):after{left:17px;top:63px}.lds-roller div:nth-child(8){animation-delay:-.288s}.lds-roller div:nth-child(8):after{left:12px;top:56px}@keyframes lds-roller{0%{transform:rotate(0deg)}to{transform:rotate(1turn)}}.anim-gradient{animation:gradient 3s ease infinite;background:linear-gradient(-90deg,#fff,#fff,var(--primary-color-light));background-size:200% 200%}@keyframes gradient{0%{background-position:0 50%}50%{background-position:30% 50%}to{background-position:0 50%}}@keyframes sidetools-feature-active{0%{border-radius:var(--border-radius-small);opacity:70%;width:40px}to{border-radius:var(--border-radius-regular);width:100%}}@keyframes icon-shadow-pulsing{to{box-shadow:0 0 10px 4px var(--primary-color-light)}}@keyframes kf_shake{0%{transform:translate(20px)}12%{transform:translate(-20px)}24%{transform:translate(15px)}36%{transform:translate(-15px)}48%{transform:translate(10px)}60%{transform:translate(-10px)}72%{transform:translate(8px)}84%{transform:translate(-8px)}to{transform:translate(0)}}@keyframes pulsing{to{transform:scale(1.2)}}.interaction-cursor{cursor:pointer}.error{animation:kf_shake 1s linear;border:2px solid red!important}.hidden{display:none!important}.stats{left:50%!important;top:calc(100% - 16px)!important;transform:translate(-50%,-100%)}";
 styleInject(css_248z$3);
-
-function emitGlobalEvent(eventName) {
-    const event = new Event(eventName);
-    document.dispatchEvent(event);
-  }
 
 // import * as SubsetBuilder from "../helpers/subsetBuilder";
 // import * as Models from "./models";
@@ -8103,6 +7737,11 @@ async function getSpatialTree(idx) {
   //await arranjeNodesInTree(ifcModelTree);
   return ifcModelTree;
 }
+
+function emitGlobalEvent(eventName) {
+    const event = new Event(eventName);
+    document.dispatchEvent(event);
+  }
 
 /**
  * @license
@@ -102222,8 +101861,6 @@ async function loadModels(event) {
   }
 }
 
-// const inputBtn = document.getElementById('input-button');
-
 var script$2 = {
     data(){
         return {
@@ -102231,16 +101868,18 @@ var script$2 = {
             buttonInput: "buttonInput",
         }
     },
+    created() {
+        console.log(this.$store.state.loading);
+    },
     methods: {
         async uploadAndHide(event) {
-            const fileInput = this.$refs[this.fileInputRef];
             const buttonInput = this.$refs[this.buttonInput];
             nextTick(() => {
-                fileInput.classList.add("hidden");
                 buttonInput.classList.add("hidden");
             });
-            emitGlobalEvent("loading");
+            this.$emit('file-uploaded');
             await loadModels(event);
+            this.$emit('file-rendered');
         },
     }
 };
@@ -102271,25 +101910,35 @@ script$2.__scopeId = "data-v-12f1f0ae";
 script$2.__file = "src/components/FileInput.vue";
 
 var script$1 = {
+    data() {
+        return {
+            modal: "modal",
+        }
+    },
+    computed: {
+        // loadingStatus() {
+        // return this.$store.getters.loadingStatus
+        // }
+        showLoading(){
+            return this.$store.state.showLoading;
+        }
+    },
     mounted() {
-        this.$refs.modal.addEventListener('loading', () => {
-            this.$refs.modal.classList.remove('hidden');
-        });
+        // this.$store.dispatch('setLoadingStatus', true) 
     }
 };
 
-const _hoisted_1$1 = {
-  id: "modal",
-  ref: "modal",
-  class: "modal hidden"
-};
-const _hoisted_2 = /*#__PURE__*/createStaticVNode("<div class=\"modal-loading-container\" data-v-efe9d588><div class=\"cube-container\" data-v-efe9d588><div class=\"h1Container\" data-v-efe9d588><div class=\"cube cube-h1 cube-w1 cube-l1\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h1 cube-w1 cube-l2\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h1 cube-w1 cube-l3\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h1 cube-w2 cube-l1\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h1 cube-w2 cube-l2\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h1 cube-w2 cube-l3\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h1 cube-w3 cube-l1\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h1 cube-w3 cube-l2\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h1 cube-w3 cube-l3\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div></div><div class=\"h2Container\" data-v-efe9d588><div class=\"cube cube-h2 cube-w1 cube-l1\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h2 cube-w1 cube-l2\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h2 cube-w1 cube-l3\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h2 cube-w2 cube-l1\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h2 cube-w2 cube-l2\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h2 cube-w2 cube-l3\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h2 cube-w3 cube-l1\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h2 cube-w3 cube-l2\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h2 cube-w3 cube-l3\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div></div><div class=\"h3Container\" data-v-efe9d588><div class=\"cube cube-h3 cube-w1 cube-l1\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h3 cube-w1 cube-l2\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h3 cube-w1 cube-l3\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h3 cube-w2 cube-l1\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h3 cube-w2 cube-l2\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h3 cube-w2 cube-l3\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h3 cube-w3 cube-l1\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h3 cube-w3 cube-l2\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h3 cube-w3 cube-l3\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div></div></div></div>", 1);
-const _hoisted_3 = [
-  _hoisted_2
+const _hoisted_1$1 = /*#__PURE__*/createStaticVNode("<div class=\"modal-loading-container\" data-v-efe9d588><div class=\"cube-container\" data-v-efe9d588><div class=\"h1Container\" data-v-efe9d588><div class=\"cube cube-h1 cube-w1 cube-l1\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h1 cube-w1 cube-l2\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h1 cube-w1 cube-l3\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h1 cube-w2 cube-l1\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h1 cube-w2 cube-l2\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h1 cube-w2 cube-l3\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h1 cube-w3 cube-l1\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h1 cube-w3 cube-l2\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h1 cube-w3 cube-l3\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div></div><div class=\"h2Container\" data-v-efe9d588><div class=\"cube cube-h2 cube-w1 cube-l1\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h2 cube-w1 cube-l2\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h2 cube-w1 cube-l3\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h2 cube-w2 cube-l1\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h2 cube-w2 cube-l2\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h2 cube-w2 cube-l3\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h2 cube-w3 cube-l1\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h2 cube-w3 cube-l2\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h2 cube-w3 cube-l3\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div></div><div class=\"h3Container\" data-v-efe9d588><div class=\"cube cube-h3 cube-w1 cube-l1\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h3 cube-w1 cube-l2\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h3 cube-w1 cube-l3\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h3 cube-w2 cube-l1\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h3 cube-w2 cube-l2\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h3 cube-w2 cube-l3\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h3 cube-w3 cube-l1\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h3 cube-w3 cube-l2\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div><div class=\"cube cube-h3 cube-w3 cube-l3\" data-v-efe9d588><div class=\"cube-face cube-top\" data-v-efe9d588></div><div class=\"cube-face cube-left\" data-v-efe9d588></div><div class=\"cube-face cube-right\" data-v-efe9d588></div></div></div></div></div>", 1);
+const _hoisted_2 = [
+  _hoisted_1$1
 ];
 
 function render$1(_ctx, _cache, $props, $setup, $data, $options) {
-  return (openBlock(), createElementBlock("div", _hoisted_1$1, _hoisted_3, 512 /* NEED_PATCH */))
+  return (openBlock(), createElementBlock("div", {
+    id: "modal",
+    ref: "modal",
+    class: normalizeClass(["modal", { hidden: !$options.showLoading }])
+  }, _hoisted_2, 2 /* CLASS */))
 }
 
 var css_248z$1 = ".cube-container[data-v-efe9d588]{height:100px;position:relative;transform:scale(.8);width:86px}.cube[data-v-efe9d588]{height:100px;position:absolute;width:86px}.cube-right[data-v-efe9d588]{background:var(--primary-color-dark);transform:rotate(-30deg) skewX(-30deg) translate(49px,65px) scaleY(.86)}.cube-left[data-v-efe9d588]{background:var(--primary-color);transform:rotate(90deg) skewX(-30deg) scaleY(.86) translate(25px,-50px)}.cube-top[data-v-efe9d588]{background:var(--primary-color-light);transform:rotate(210deg) skew(-30deg) translate(-75px,-22px) scaleY(.86);z-index:2}.cube-face[data-v-efe9d588]{height:50px;position:absolute;transform-origin:0 0;width:50px}.cube-h1.cube-w1.cube-l1[data-v-efe9d588]{animation-duration:3s;animation-iteration-count:infinite;animation-name:h1w1l1-efe9d588;animation-timing-function:ease;z-index:-1}@keyframes h1w1l1-efe9d588{0%{transform:translateY(-100%)}14%{transform:translate(-50%,-125%)}28%{transform:translateY(-150%)}43%{transform:translateY(-200%)}57%{transform:translate(50%,-175%)}71%{transform:translateY(-150%)}85%{transform:translateY(-100%)}to{transform:translateY(-100%)}}.cube-h1.cube-w1.cube-l2[data-v-efe9d588]{animation-duration:3s;animation-iteration-count:infinite;animation-name:h1w1l2-efe9d588;animation-timing-function:ease;z-index:-1}@keyframes h1w1l2-efe9d588{0%{transform:translate(50%,-75%)}14%{transform:translate(50%,-75%)}28%{transform:translate(100%,-100%)}43%{transform:translate(100%,-150%)}57%{transform:translate(100%,-150%)}71%{transform:translate(50%,-125%)}85%{transform:translate(50%,-75%)}to{transform:translate(50%,-75%)}}.cube-h1.cube-w1.cube-l3[data-v-efe9d588]{animation-duration:3s;animation-iteration-count:infinite;animation-name:h1w1l3-efe9d588;animation-timing-function:ease;z-index:-1}@keyframes h1w1l3-efe9d588{0%{transform:translate(100%,-50%)}14%{transform:translate(150%,-25%)}28%{transform:translate(200%,-50%)}43%{transform:translate(200%,-100%)}57%{transform:translate(150%,-125%)}71%{transform:translate(100%,-100%)}85%{transform:translate(100%,-50%)}to{transform:translate(100%,-50%)}}.cube-h1.cube-w2.cube-l1[data-v-efe9d588]{animation-duration:3s;animation-iteration-count:infinite;animation-name:h1w2l1-efe9d588;animation-timing-function:ease;z-index:-1}@keyframes h1w2l1-efe9d588{0%{transform:translate(-50%,-75%)}14%{transform:translate(-100%,-100%)}28%{transform:translate(-100%,-100%)}43%{transform:translate(-100%,-150%)}57%{transform:translate(-50%,-125%)}71%{transform:translate(-50%,-125%)}85%{transform:translate(-50%,-75%)}to{transform:translate(-50%,-75%)}}.cube-h1.cube-w2.cube-l2[data-v-efe9d588]{animation-duration:3s;animation-iteration-count:infinite;animation-name:h1w2l2-efe9d588;animation-timing-function:ease;z-index:-1}@keyframes h1w2l2-efe9d588{0%{transform:translateY(-50%)}14%{transform:translateY(-50%)}28%{transform:translateY(-50%)}43%{transform:translateY(-100%)}57%{transform:translateY(-100%)}71%{transform:translateY(-100%)}85%{transform:translateY(-50%)}to{transform:translateY(-50%)}}.cube-h1.cube-w2.cube-l3[data-v-efe9d588]{animation-duration:3s;animation-iteration-count:infinite;animation-name:h1w2l3-efe9d588;animation-timing-function:ease;z-index:-1}@keyframes h1w2l3-efe9d588{0%{transform:translate(50%,-25%)}14%{transform:translate(100%)}28%{transform:translate(100%)}43%{transform:translate(100%,-50%)}57%{transform:translate(50%,-75%)}71%{transform:translate(50%,-75%)}85%{transform:translate(50%,-25%)}to{transform:translate(50%,-25%)}}.cube-h1.cube-w3.cube-l1[data-v-efe9d588]{animation-duration:3s;animation-iteration-count:infinite;animation-name:h1w3l1-efe9d588;animation-timing-function:ease;z-index:-1}@keyframes h1w3l1-efe9d588{0%{transform:translate(-100%,-50%)}14%{transform:translate(-150%,-75%)}28%{transform:translate(-200%,-50%)}43%{transform:translate(-200%,-100%)}57%{transform:translate(-150%,-75%)}71%{transform:translate(-100%,-100%)}85%{transform:translate(-100%,-50%)}to{transform:translate(-100%,-50%)}}.cube-h1.cube-w3.cube-l2[data-v-efe9d588]{animation-duration:3s;animation-iteration-count:infinite;animation-name:h1w3l2-efe9d588;animation-timing-function:ease;z-index:-1}@keyframes h1w3l2-efe9d588{0%{transform:translate(-50%,-25%)}14%{transform:translate(-50%,-25%)}28%{transform:translate(-100%)}43%{transform:translate(-100%,-50%)}57%{transform:translate(-100%,-50%)}71%{transform:translate(-50%,-75%)}85%{transform:translate(-50%,-25%)}to{transform:translate(-50%,-25%)}}.cube-h1.cube-w3.cube-l3[data-v-efe9d588]{animation-duration:3s;animation-iteration-count:infinite;animation-name:h1w3l3-efe9d588;animation-timing-function:ease;z-index:-1}@keyframes h1w3l3-efe9d588{0%{transform:translate(0)}14%{transform:translate(50%,25%)}28%{transform:translateY(50%)}43%{transform:translate(0)}57%{transform:translate(-50%,-25%)}71%{transform:translateY(-50%)}85%{transform:translate(0)}to{transform:translate(0)}}.cube-h2.cube-w1.cube-l1[data-v-efe9d588]{animation-duration:3s;animation-iteration-count:infinite;animation-name:h2w1l1-efe9d588;animation-timing-function:ease;z-index:-2}@keyframes h2w1l1-efe9d588{0%{transform:translateY(-50%)}14%{transform:translate(-50%,-75%)}28%{transform:translateY(-100%)}43%{transform:translateY(-100%)}57%{transform:translate(50%,-75%)}71%{transform:translateY(-50%)}85%{transform:translateY(-50%)}to{transform:translateY(-50%)}}.cube-h2.cube-w1.cube-l2[data-v-efe9d588]{animation-duration:3s;animation-iteration-count:infinite;animation-name:h2w1l2-efe9d588;animation-timing-function:ease;z-index:-2}@keyframes h2w1l2-efe9d588{0%{transform:translate(50%,-25%)}14%{transform:translate(50%,-25%)}28%{transform:translate(100%,-50%)}43%{transform:translate(100%,-50%)}57%{transform:translate(100%,-50%)}71%{transform:translate(50%,-25%)}85%{transform:translate(50%,-25%)}to{transform:translate(50%,-25%)}}.cube-h2.cube-w1.cube-l3[data-v-efe9d588]{animation-duration:3s;animation-iteration-count:infinite;animation-name:h2w1l3-efe9d588;animation-timing-function:ease;z-index:-2}@keyframes h2w1l3-efe9d588{0%{transform:translate(100%)}14%{transform:translate(150%,25%)}28%{transform:translate(200%)}43%{transform:translate(200%)}57%{transform:translate(150%,-25%)}71%{transform:translate(100%)}85%{transform:translate(100%)}to{transform:translate(100%)}}.cube-h2.cube-w2.cube-l1[data-v-efe9d588]{animation-duration:3s;animation-iteration-count:infinite;animation-name:h2w2l1-efe9d588;animation-timing-function:ease;z-index:-2}@keyframes h2w2l1-efe9d588{0%{transform:translate(-50%,-25%)}14%{transform:translate(-100%,-50%)}28%{transform:translate(-100%,-50%)}43%{transform:translate(-100%,-50%)}57%{transform:translate(-50%,-25%)}71%{transform:translate(-50%,-25%)}85%{transform:translate(-50%,-25%)}to{transform:translate(-50%,-25%)}}.cube-h2.cube-w2.cube-l2[data-v-efe9d588]{animation-duration:3s;animation-iteration-count:infinite;animation-name:h2w2l2-efe9d588;animation-timing-function:ease;z-index:-2}@keyframes h2w2l2-efe9d588{0%{transform:translate(0)}14%{transform:translate(0)}28%{transform:translate(0)}43%{transform:translate(0)}57%{transform:translate(0)}71%{transform:translate(0)}85%{transform:translate(0)}to{transform:translate(0)}}.cube-h2.cube-w2.cube-l3[data-v-efe9d588]{animation-duration:3s;animation-iteration-count:infinite;animation-name:h2w2l3-efe9d588;animation-timing-function:ease;z-index:-2}@keyframes h2w2l3-efe9d588{0%{transform:translate(50%,25%)}14%{transform:translate(100%,50%)}28%{transform:translate(100%,50%)}43%{transform:translate(100%,50%)}57%{transform:translate(50%,25%)}71%{transform:translate(50%,25%)}85%{transform:translate(50%,25%)}to{transform:translate(50%,25%)}}.cube-h2.cube-w3.cube-l1[data-v-efe9d588]{animation-duration:3s;animation-iteration-count:infinite;animation-name:h2w3l1-efe9d588;animation-timing-function:ease;z-index:-2}@keyframes h2w3l1-efe9d588{0%{transform:translate(-100%)}14%{transform:translate(-150%,-25%)}28%{transform:translate(-200%)}43%{transform:translate(-200%)}57%{transform:translate(-150%,25%)}71%{transform:translate(-100%)}85%{transform:translate(-100%)}to{transform:translate(-100%)}}.cube-h2.cube-w3.cube-l2[data-v-efe9d588]{animation-duration:3s;animation-iteration-count:infinite;animation-name:h2w3l2-efe9d588;animation-timing-function:ease;z-index:-2}@keyframes h2w3l2-efe9d588{0%{transform:translate(-50%,25%)}14%{transform:translate(-50%,25%)}28%{transform:translate(-100%,50%)}43%{transform:translate(-100%,50%)}57%{transform:translate(-100%,50%)}71%{transform:translate(-50%,25%)}85%{transform:translate(-50%,25%)}to{transform:translate(-50%,25%)}}.cube-h2.cube-w3.cube-l3[data-v-efe9d588]{animation-duration:3s;animation-iteration-count:infinite;animation-name:h2w3l3-efe9d588;animation-timing-function:ease;z-index:-2}@keyframes h2w3l3-efe9d588{0%{transform:translateY(50%)}14%{transform:translate(50%,75%)}28%{transform:translateY(100%)}43%{transform:translateY(100%)}57%{transform:translate(-50%,75%)}71%{transform:translateY(50%)}85%{transform:translateY(50%)}to{transform:translateY(50%)}}.cube-h3.cube-w1.cube-l1[data-v-efe9d588]{animation-duration:3s;animation-iteration-count:infinite;animation-name:h3w1l1-efe9d588;animation-timing-function:ease;z-index:-3}@keyframes h3w1l1-efe9d588{0%{transform:translate(0)}14%{transform:translate(-50%,-25%)}28%{transform:translateY(-50%)}43%{transform:translate(0)}57%{transform:translate(50%,25%)}71%{transform:translateY(50%)}85%{transform:translate(0)}to{transform:translate(0)}}.cube-h3.cube-w1.cube-l2[data-v-efe9d588]{animation-duration:3s;animation-iteration-count:infinite;animation-name:h3w1l2-efe9d588;animation-timing-function:ease;z-index:-3}@keyframes h3w1l2-efe9d588{0%{transform:translate(50%,25%)}14%{transform:translate(50%,25%)}28%{transform:translate(100%)}43%{transform:translate(100%,50%)}57%{transform:translate(100%,50%)}71%{transform:translate(50%,75%)}85%{transform:translate(50%,25%)}to{transform:translate(50%,25%)}}.cube-h3.cube-w1.cube-l3[data-v-efe9d588]{animation-duration:3s;animation-iteration-count:infinite;animation-name:h3w1l3-efe9d588;animation-timing-function:ease;z-index:-3}@keyframes h3w1l3-efe9d588{0%{transform:translate(100%,50%)}14%{transform:translate(150%,75%)}28%{transform:translate(200%,50%)}43%{transform:translate(200%,100%)}57%{transform:translate(150%,75%)}71%{transform:translate(100%,100%)}85%{transform:translate(100%,50%)}to{transform:translate(100%,50%)}}.cube-h3.cube-w2.cube-l1[data-v-efe9d588]{animation-duration:3s;animation-iteration-count:infinite;animation-name:h3w2l1-efe9d588;animation-timing-function:ease;z-index:-3}@keyframes h3w2l1-efe9d588{0%{transform:translate(-50%,25%)}14%{transform:translate(-100%)}28%{transform:translate(-100%)}43%{transform:translate(-100%,50%)}57%{transform:translate(-50%,75%)}71%{transform:translate(-50%,75%)}85%{transform:translate(-50%,25%)}to{transform:translate(-50%,25%)}}.cube-h3.cube-w2.cube-l2[data-v-efe9d588]{animation-duration:3s;animation-iteration-count:infinite;animation-name:h3w2l2-efe9d588;animation-timing-function:ease;z-index:-3}@keyframes h3w2l2-efe9d588{0%{transform:translateY(50%)}14%{transform:translateY(50%)}28%{transform:translateY(50%)}43%{transform:translateY(100%)}57%{transform:translateY(100%)}71%{transform:translateY(100%)}85%{transform:translateY(50%)}to{transform:translateY(50%)}}.cube-h3.cube-w2.cube-l3[data-v-efe9d588]{animation-duration:3s;animation-iteration-count:infinite;animation-name:h3w2l3-efe9d588;animation-timing-function:ease;z-index:-3}@keyframes h3w2l3-efe9d588{0%{transform:translate(50%,75%)}14%{transform:translate(100%,100%)}28%{transform:translate(100%,100%)}43%{transform:translate(100%,150%)}57%{transform:translate(50%,125%)}71%{transform:translate(50%,125%)}85%{transform:translate(50%,75%)}to{transform:translate(50%,75%)}}.cube-h3.cube-w3.cube-l1[data-v-efe9d588]{animation-duration:3s;animation-iteration-count:infinite;animation-name:h3w3l1-efe9d588;animation-timing-function:ease;z-index:-3}@keyframes h3w3l1-efe9d588{0%{transform:translate(-100%,50%)}14%{transform:translate(-150%,25%)}28%{transform:translate(-200%,50%)}43%{transform:translate(-200%,100%)}57%{transform:translate(-150%,125%)}71%{transform:translate(-100%,100%)}85%{transform:translate(-100%,50%)}to{transform:translate(-100%,50%)}}.cube-h3.cube-w3.cube-l2[data-v-efe9d588]{animation-duration:3s;animation-iteration-count:infinite;animation-name:h3w3l2-efe9d588;animation-timing-function:ease;z-index:-3}@keyframes h3w3l2-efe9d588{0%{transform:translate(-50%,75%)}14%{transform:translate(-50%,75%)}28%{transform:translate(-100%,100%)}43%{transform:translate(-100%,150%)}57%{transform:translate(-100%,150%)}71%{transform:translate(-50%,125%)}85%{transform:translate(-50%,75%)}to{transform:translate(-50%,75%)}}.cube-h3.cube-w3.cube-l3[data-v-efe9d588]{animation-duration:3s;animation-iteration-count:infinite;animation-name:h3w3l3-efe9d588;animation-timing-function:ease;z-index:-3}@keyframes h3w3l3-efe9d588{0%{transform:translateY(100%)}14%{transform:translate(50%,125%)}28%{transform:translateY(150%)}43%{transform:translateY(200%)}57%{transform:translate(-50%,175%)}71%{transform:translateY(150%)}85%{transform:translateY(100%)}to{transform:translateY(100%)}}";
@@ -103991,18 +103640,936 @@ function buildScene() {
   });
 }
 
-var script = {
-  methods: {
-    buildScene() {
-      buildScene();
+/*!
+ * vuex v4.0.0
+ * (c) 2021 Evan You
+ * @license MIT
+ */
+
+var storeKey = 'store';
+
+var target = typeof window !== 'undefined'
+  ? window
+  : typeof global !== 'undefined'
+    ? global
+    : {};
+var devtoolHook = target.__VUE_DEVTOOLS_GLOBAL_HOOK__;
+
+function devtoolPlugin (store) {
+  if (!devtoolHook) { return }
+
+  store._devtoolHook = devtoolHook;
+
+  devtoolHook.emit('vuex:init', store);
+
+  devtoolHook.on('vuex:travel-to-state', function (targetState) {
+    store.replaceState(targetState);
+  });
+
+  store.subscribe(function (mutation, state) {
+    devtoolHook.emit('vuex:mutation', mutation, state);
+  }, { prepend: true });
+
+  store.subscribeAction(function (action, state) {
+    devtoolHook.emit('vuex:action', action, state);
+  }, { prepend: true });
+}
+
+/**
+ * forEach for object
+ */
+function forEachValue (obj, fn) {
+  Object.keys(obj).forEach(function (key) { return fn(obj[key], key); });
+}
+
+function isObject (obj) {
+  return obj !== null && typeof obj === 'object'
+}
+
+function isPromise (val) {
+  return val && typeof val.then === 'function'
+}
+
+function assert (condition, msg) {
+  if (!condition) { throw new Error(("[vuex] " + msg)) }
+}
+
+function partial (fn, arg) {
+  return function () {
+    return fn(arg)
+  }
+}
+
+// Base data struct for store's module, package with some attribute and method
+var Module = function Module (rawModule, runtime) {
+  this.runtime = runtime;
+  // Store some children item
+  this._children = Object.create(null);
+  // Store the origin module object which passed by programmer
+  this._rawModule = rawModule;
+  var rawState = rawModule.state;
+
+  // Store the origin module's state
+  this.state = (typeof rawState === 'function' ? rawState() : rawState) || {};
+};
+
+var prototypeAccessors = { namespaced: { configurable: true } };
+
+prototypeAccessors.namespaced.get = function () {
+  return !!this._rawModule.namespaced
+};
+
+Module.prototype.addChild = function addChild (key, module) {
+  this._children[key] = module;
+};
+
+Module.prototype.removeChild = function removeChild (key) {
+  delete this._children[key];
+};
+
+Module.prototype.getChild = function getChild (key) {
+  return this._children[key]
+};
+
+Module.prototype.hasChild = function hasChild (key) {
+  return key in this._children
+};
+
+Module.prototype.update = function update (rawModule) {
+  this._rawModule.namespaced = rawModule.namespaced;
+  if (rawModule.actions) {
+    this._rawModule.actions = rawModule.actions;
+  }
+  if (rawModule.mutations) {
+    this._rawModule.mutations = rawModule.mutations;
+  }
+  if (rawModule.getters) {
+    this._rawModule.getters = rawModule.getters;
+  }
+};
+
+Module.prototype.forEachChild = function forEachChild (fn) {
+  forEachValue(this._children, fn);
+};
+
+Module.prototype.forEachGetter = function forEachGetter (fn) {
+  if (this._rawModule.getters) {
+    forEachValue(this._rawModule.getters, fn);
+  }
+};
+
+Module.prototype.forEachAction = function forEachAction (fn) {
+  if (this._rawModule.actions) {
+    forEachValue(this._rawModule.actions, fn);
+  }
+};
+
+Module.prototype.forEachMutation = function forEachMutation (fn) {
+  if (this._rawModule.mutations) {
+    forEachValue(this._rawModule.mutations, fn);
+  }
+};
+
+Object.defineProperties( Module.prototype, prototypeAccessors );
+
+var ModuleCollection = function ModuleCollection (rawRootModule) {
+  // register root module (Vuex.Store options)
+  this.register([], rawRootModule, false);
+};
+
+ModuleCollection.prototype.get = function get (path) {
+  return path.reduce(function (module, key) {
+    return module.getChild(key)
+  }, this.root)
+};
+
+ModuleCollection.prototype.getNamespace = function getNamespace (path) {
+  var module = this.root;
+  return path.reduce(function (namespace, key) {
+    module = module.getChild(key);
+    return namespace + (module.namespaced ? key + '/' : '')
+  }, '')
+};
+
+ModuleCollection.prototype.update = function update$1 (rawRootModule) {
+  update([], this.root, rawRootModule);
+};
+
+ModuleCollection.prototype.register = function register (path, rawModule, runtime) {
+    var this$1$1 = this;
+    if ( runtime === void 0 ) runtime = true;
+
+  if ((process.env.NODE_ENV !== 'production')) {
+    assertRawModule(path, rawModule);
+  }
+
+  var newModule = new Module(rawModule, runtime);
+  if (path.length === 0) {
+    this.root = newModule;
+  } else {
+    var parent = this.get(path.slice(0, -1));
+    parent.addChild(path[path.length - 1], newModule);
+  }
+
+  // register nested modules
+  if (rawModule.modules) {
+    forEachValue(rawModule.modules, function (rawChildModule, key) {
+      this$1$1.register(path.concat(key), rawChildModule, runtime);
+    });
+  }
+};
+
+ModuleCollection.prototype.unregister = function unregister (path) {
+  var parent = this.get(path.slice(0, -1));
+  var key = path[path.length - 1];
+  var child = parent.getChild(key);
+
+  if (!child) {
+    if ((process.env.NODE_ENV !== 'production')) {
+      console.warn(
+        "[vuex] trying to unregister module '" + key + "', which is " +
+        "not registered"
+      );
     }
-  },
+    return
+  }
+
+  if (!child.runtime) {
+    return
+  }
+
+  parent.removeChild(key);
+};
+
+ModuleCollection.prototype.isRegistered = function isRegistered (path) {
+  var parent = this.get(path.slice(0, -1));
+  var key = path[path.length - 1];
+
+  if (parent) {
+    return parent.hasChild(key)
+  }
+
+  return false
+};
+
+function update (path, targetModule, newModule) {
+  if ((process.env.NODE_ENV !== 'production')) {
+    assertRawModule(path, newModule);
+  }
+
+  // update target module
+  targetModule.update(newModule);
+
+  // update nested modules
+  if (newModule.modules) {
+    for (var key in newModule.modules) {
+      if (!targetModule.getChild(key)) {
+        if ((process.env.NODE_ENV !== 'production')) {
+          console.warn(
+            "[vuex] trying to add a new module '" + key + "' on hot reloading, " +
+            'manual reload is needed'
+          );
+        }
+        return
+      }
+      update(
+        path.concat(key),
+        targetModule.getChild(key),
+        newModule.modules[key]
+      );
+    }
+  }
+}
+
+var functionAssert = {
+  assert: function (value) { return typeof value === 'function'; },
+  expected: 'function'
+};
+
+var objectAssert = {
+  assert: function (value) { return typeof value === 'function' ||
+    (typeof value === 'object' && typeof value.handler === 'function'); },
+  expected: 'function or object with "handler" function'
+};
+
+var assertTypes = {
+  getters: functionAssert,
+  mutations: functionAssert,
+  actions: objectAssert
+};
+
+function assertRawModule (path, rawModule) {
+  Object.keys(assertTypes).forEach(function (key) {
+    if (!rawModule[key]) { return }
+
+    var assertOptions = assertTypes[key];
+
+    forEachValue(rawModule[key], function (value, type) {
+      assert(
+        assertOptions.assert(value),
+        makeAssertionMessage(path, key, type, value, assertOptions.expected)
+      );
+    });
+  });
+}
+
+function makeAssertionMessage (path, key, type, value, expected) {
+  var buf = key + " should be " + expected + " but \"" + key + "." + type + "\"";
+  if (path.length > 0) {
+    buf += " in module \"" + (path.join('.')) + "\"";
+  }
+  buf += " is " + (JSON.stringify(value)) + ".";
+  return buf
+}
+
+function createStore (options) {
+  return new Store(options)
+}
+
+var Store = function Store (options) {
+  var this$1$1 = this;
+  if ( options === void 0 ) options = {};
+
+  if ((process.env.NODE_ENV !== 'production')) {
+    assert(typeof Promise !== 'undefined', "vuex requires a Promise polyfill in this browser.");
+    assert(this instanceof Store, "store must be called with the new operator.");
+  }
+
+  var plugins = options.plugins; if ( plugins === void 0 ) plugins = [];
+  var strict = options.strict; if ( strict === void 0 ) strict = false;
+
+  // store internal state
+  this._committing = false;
+  this._actions = Object.create(null);
+  this._actionSubscribers = [];
+  this._mutations = Object.create(null);
+  this._wrappedGetters = Object.create(null);
+  this._modules = new ModuleCollection(options);
+  this._modulesNamespaceMap = Object.create(null);
+  this._subscribers = [];
+  this._makeLocalGettersCache = Object.create(null);
+
+  // bind commit and dispatch to self
+  var store = this;
+  var ref = this;
+  var dispatch = ref.dispatch;
+  var commit = ref.commit;
+  this.dispatch = function boundDispatch (type, payload) {
+    return dispatch.call(store, type, payload)
+  };
+  this.commit = function boundCommit (type, payload, options) {
+    return commit.call(store, type, payload, options)
+  };
+
+  // strict mode
+  this.strict = strict;
+
+  var state = this._modules.root.state;
+
+  // init root module.
+  // this also recursively registers all sub-modules
+  // and collects all module getters inside this._wrappedGetters
+  installModule(this, state, [], this._modules.root);
+
+  // initialize the store state, which is responsible for the reactivity
+  // (also registers _wrappedGetters as computed properties)
+  resetStoreState(this, state);
+
+  // apply plugins
+  plugins.forEach(function (plugin) { return plugin(this$1$1); });
+
+  var useDevtools = options.devtools !== undefined ? options.devtools : /* Vue.config.devtools */ true;
+  if (useDevtools) {
+    devtoolPlugin(this);
+  }
+};
+
+var prototypeAccessors$1 = { state: { configurable: true } };
+
+Store.prototype.install = function install (app, injectKey) {
+  app.provide(injectKey || storeKey, this);
+  app.config.globalProperties.$store = this;
+};
+
+prototypeAccessors$1.state.get = function () {
+  return this._state.data
+};
+
+prototypeAccessors$1.state.set = function (v) {
+  if ((process.env.NODE_ENV !== 'production')) {
+    assert(false, "use store.replaceState() to explicit replace store state.");
+  }
+};
+
+Store.prototype.commit = function commit (_type, _payload, _options) {
+    var this$1$1 = this;
+
+  // check object-style commit
+  var ref = unifyObjectStyle(_type, _payload, _options);
+    var type = ref.type;
+    var payload = ref.payload;
+    var options = ref.options;
+
+  var mutation = { type: type, payload: payload };
+  var entry = this._mutations[type];
+  if (!entry) {
+    if ((process.env.NODE_ENV !== 'production')) {
+      console.error(("[vuex] unknown mutation type: " + type));
+    }
+    return
+  }
+  this._withCommit(function () {
+    entry.forEach(function commitIterator (handler) {
+      handler(payload);
+    });
+  });
+
+  this._subscribers
+    .slice() // shallow copy to prevent iterator invalidation if subscriber synchronously calls unsubscribe
+    .forEach(function (sub) { return sub(mutation, this$1$1.state); });
+
+  if (
+    (process.env.NODE_ENV !== 'production') &&
+    options && options.silent
+  ) {
+    console.warn(
+      "[vuex] mutation type: " + type + ". Silent option has been removed. " +
+      'Use the filter functionality in the vue-devtools'
+    );
+  }
+};
+
+Store.prototype.dispatch = function dispatch (_type, _payload) {
+    var this$1$1 = this;
+
+  // check object-style dispatch
+  var ref = unifyObjectStyle(_type, _payload);
+    var type = ref.type;
+    var payload = ref.payload;
+
+  var action = { type: type, payload: payload };
+  var entry = this._actions[type];
+  if (!entry) {
+    if ((process.env.NODE_ENV !== 'production')) {
+      console.error(("[vuex] unknown action type: " + type));
+    }
+    return
+  }
+
+  try {
+    this._actionSubscribers
+      .slice() // shallow copy to prevent iterator invalidation if subscriber synchronously calls unsubscribe
+      .filter(function (sub) { return sub.before; })
+      .forEach(function (sub) { return sub.before(action, this$1$1.state); });
+  } catch (e) {
+    if ((process.env.NODE_ENV !== 'production')) {
+      console.warn("[vuex] error in before action subscribers: ");
+      console.error(e);
+    }
+  }
+
+  var result = entry.length > 1
+    ? Promise.all(entry.map(function (handler) { return handler(payload); }))
+    : entry[0](payload);
+
+  return new Promise(function (resolve, reject) {
+    result.then(function (res) {
+      try {
+        this$1$1._actionSubscribers
+          .filter(function (sub) { return sub.after; })
+          .forEach(function (sub) { return sub.after(action, this$1$1.state); });
+      } catch (e) {
+        if ((process.env.NODE_ENV !== 'production')) {
+          console.warn("[vuex] error in after action subscribers: ");
+          console.error(e);
+        }
+      }
+      resolve(res);
+    }, function (error) {
+      try {
+        this$1$1._actionSubscribers
+          .filter(function (sub) { return sub.error; })
+          .forEach(function (sub) { return sub.error(action, this$1$1.state, error); });
+      } catch (e) {
+        if ((process.env.NODE_ENV !== 'production')) {
+          console.warn("[vuex] error in error action subscribers: ");
+          console.error(e);
+        }
+      }
+      reject(error);
+    });
+  })
+};
+
+Store.prototype.subscribe = function subscribe (fn, options) {
+  return genericSubscribe(fn, this._subscribers, options)
+};
+
+Store.prototype.subscribeAction = function subscribeAction (fn, options) {
+  var subs = typeof fn === 'function' ? { before: fn } : fn;
+  return genericSubscribe(subs, this._actionSubscribers, options)
+};
+
+Store.prototype.watch = function watch$1 (getter, cb, options) {
+    var this$1$1 = this;
+
+  if ((process.env.NODE_ENV !== 'production')) {
+    assert(typeof getter === 'function', "store.watch only accepts a function.");
+  }
+  return watch(function () { return getter(this$1$1.state, this$1$1.getters); }, cb, Object.assign({}, options))
+};
+
+Store.prototype.replaceState = function replaceState (state) {
+    var this$1$1 = this;
+
+  this._withCommit(function () {
+    this$1$1._state.data = state;
+  });
+};
+
+Store.prototype.registerModule = function registerModule (path, rawModule, options) {
+    if ( options === void 0 ) options = {};
+
+  if (typeof path === 'string') { path = [path]; }
+
+  if ((process.env.NODE_ENV !== 'production')) {
+    assert(Array.isArray(path), "module path must be a string or an Array.");
+    assert(path.length > 0, 'cannot register the root module by using registerModule.');
+  }
+
+  this._modules.register(path, rawModule);
+  installModule(this, this.state, path, this._modules.get(path), options.preserveState);
+  // reset store to update getters...
+  resetStoreState(this, this.state);
+};
+
+Store.prototype.unregisterModule = function unregisterModule (path) {
+    var this$1$1 = this;
+
+  if (typeof path === 'string') { path = [path]; }
+
+  if ((process.env.NODE_ENV !== 'production')) {
+    assert(Array.isArray(path), "module path must be a string or an Array.");
+  }
+
+  this._modules.unregister(path);
+  this._withCommit(function () {
+    var parentState = getNestedState(this$1$1.state, path.slice(0, -1));
+    delete parentState[path[path.length - 1]];
+  });
+  resetStore(this);
+};
+
+Store.prototype.hasModule = function hasModule (path) {
+  if (typeof path === 'string') { path = [path]; }
+
+  if ((process.env.NODE_ENV !== 'production')) {
+    assert(Array.isArray(path), "module path must be a string or an Array.");
+  }
+
+  return this._modules.isRegistered(path)
+};
+
+Store.prototype.hotUpdate = function hotUpdate (newOptions) {
+  this._modules.update(newOptions);
+  resetStore(this, true);
+};
+
+Store.prototype._withCommit = function _withCommit (fn) {
+  var committing = this._committing;
+  this._committing = true;
+  fn();
+  this._committing = committing;
+};
+
+Object.defineProperties( Store.prototype, prototypeAccessors$1 );
+
+function genericSubscribe (fn, subs, options) {
+  if (subs.indexOf(fn) < 0) {
+    options && options.prepend
+      ? subs.unshift(fn)
+      : subs.push(fn);
+  }
+  return function () {
+    var i = subs.indexOf(fn);
+    if (i > -1) {
+      subs.splice(i, 1);
+    }
+  }
+}
+
+function resetStore (store, hot) {
+  store._actions = Object.create(null);
+  store._mutations = Object.create(null);
+  store._wrappedGetters = Object.create(null);
+  store._modulesNamespaceMap = Object.create(null);
+  var state = store.state;
+  // init all modules
+  installModule(store, state, [], store._modules.root, true);
+  // reset state
+  resetStoreState(store, state, hot);
+}
+
+function resetStoreState (store, state, hot) {
+  var oldState = store._state;
+
+  // bind store public getters
+  store.getters = {};
+  // reset local getters cache
+  store._makeLocalGettersCache = Object.create(null);
+  var wrappedGetters = store._wrappedGetters;
+  var computedObj = {};
+  forEachValue(wrappedGetters, function (fn, key) {
+    // use computed to leverage its lazy-caching mechanism
+    // direct inline function use will lead to closure preserving oldState.
+    // using partial to return function with only arguments preserved in closure environment.
+    computedObj[key] = partial(fn, store);
+    Object.defineProperty(store.getters, key, {
+      // TODO: use `computed` when it's possible. at the moment we can't due to
+      // https://github.com/vuejs/vuex/pull/1883
+      get: function () { return computedObj[key](); },
+      enumerable: true // for local getters
+    });
+  });
+
+  store._state = reactive({
+    data: state
+  });
+
+  // enable strict mode for new state
+  if (store.strict) {
+    enableStrictMode(store);
+  }
+
+  if (oldState) {
+    if (hot) {
+      // dispatch changes in all subscribed watchers
+      // to force getter re-evaluation for hot reloading.
+      store._withCommit(function () {
+        oldState.data = null;
+      });
+    }
+  }
+}
+
+function installModule (store, rootState, path, module, hot) {
+  var isRoot = !path.length;
+  var namespace = store._modules.getNamespace(path);
+
+  // register in namespace map
+  if (module.namespaced) {
+    if (store._modulesNamespaceMap[namespace] && (process.env.NODE_ENV !== 'production')) {
+      console.error(("[vuex] duplicate namespace " + namespace + " for the namespaced module " + (path.join('/'))));
+    }
+    store._modulesNamespaceMap[namespace] = module;
+  }
+
+  // set state
+  if (!isRoot && !hot) {
+    var parentState = getNestedState(rootState, path.slice(0, -1));
+    var moduleName = path[path.length - 1];
+    store._withCommit(function () {
+      if ((process.env.NODE_ENV !== 'production')) {
+        if (moduleName in parentState) {
+          console.warn(
+            ("[vuex] state field \"" + moduleName + "\" was overridden by a module with the same name at \"" + (path.join('.')) + "\"")
+          );
+        }
+      }
+      parentState[moduleName] = module.state;
+    });
+  }
+
+  var local = module.context = makeLocalContext(store, namespace, path);
+
+  module.forEachMutation(function (mutation, key) {
+    var namespacedType = namespace + key;
+    registerMutation(store, namespacedType, mutation, local);
+  });
+
+  module.forEachAction(function (action, key) {
+    var type = action.root ? key : namespace + key;
+    var handler = action.handler || action;
+    registerAction(store, type, handler, local);
+  });
+
+  module.forEachGetter(function (getter, key) {
+    var namespacedType = namespace + key;
+    registerGetter(store, namespacedType, getter, local);
+  });
+
+  module.forEachChild(function (child, key) {
+    installModule(store, rootState, path.concat(key), child, hot);
+  });
+}
+
+/**
+ * make localized dispatch, commit, getters and state
+ * if there is no namespace, just use root ones
+ */
+function makeLocalContext (store, namespace, path) {
+  var noNamespace = namespace === '';
+
+  var local = {
+    dispatch: noNamespace ? store.dispatch : function (_type, _payload, _options) {
+      var args = unifyObjectStyle(_type, _payload, _options);
+      var payload = args.payload;
+      var options = args.options;
+      var type = args.type;
+
+      if (!options || !options.root) {
+        type = namespace + type;
+        if ((process.env.NODE_ENV !== 'production') && !store._actions[type]) {
+          console.error(("[vuex] unknown local action type: " + (args.type) + ", global type: " + type));
+          return
+        }
+      }
+
+      return store.dispatch(type, payload)
+    },
+
+    commit: noNamespace ? store.commit : function (_type, _payload, _options) {
+      var args = unifyObjectStyle(_type, _payload, _options);
+      var payload = args.payload;
+      var options = args.options;
+      var type = args.type;
+
+      if (!options || !options.root) {
+        type = namespace + type;
+        if ((process.env.NODE_ENV !== 'production') && !store._mutations[type]) {
+          console.error(("[vuex] unknown local mutation type: " + (args.type) + ", global type: " + type));
+          return
+        }
+      }
+
+      store.commit(type, payload, options);
+    }
+  };
+
+  // getters and state object must be gotten lazily
+  // because they will be changed by state update
+  Object.defineProperties(local, {
+    getters: {
+      get: noNamespace
+        ? function () { return store.getters; }
+        : function () { return makeLocalGetters(store, namespace); }
+    },
+    state: {
+      get: function () { return getNestedState(store.state, path); }
+    }
+  });
+
+  return local
+}
+
+function makeLocalGetters (store, namespace) {
+  if (!store._makeLocalGettersCache[namespace]) {
+    var gettersProxy = {};
+    var splitPos = namespace.length;
+    Object.keys(store.getters).forEach(function (type) {
+      // skip if the target getter is not match this namespace
+      if (type.slice(0, splitPos) !== namespace) { return }
+
+      // extract local getter type
+      var localType = type.slice(splitPos);
+
+      // Add a port to the getters proxy.
+      // Define as getter property because
+      // we do not want to evaluate the getters in this time.
+      Object.defineProperty(gettersProxy, localType, {
+        get: function () { return store.getters[type]; },
+        enumerable: true
+      });
+    });
+    store._makeLocalGettersCache[namespace] = gettersProxy;
+  }
+
+  return store._makeLocalGettersCache[namespace]
+}
+
+function registerMutation (store, type, handler, local) {
+  var entry = store._mutations[type] || (store._mutations[type] = []);
+  entry.push(function wrappedMutationHandler (payload) {
+    handler.call(store, local.state, payload);
+  });
+}
+
+function registerAction (store, type, handler, local) {
+  var entry = store._actions[type] || (store._actions[type] = []);
+  entry.push(function wrappedActionHandler (payload) {
+    var res = handler.call(store, {
+      dispatch: local.dispatch,
+      commit: local.commit,
+      getters: local.getters,
+      state: local.state,
+      rootGetters: store.getters,
+      rootState: store.state
+    }, payload);
+    if (!isPromise(res)) {
+      res = Promise.resolve(res);
+    }
+    if (store._devtoolHook) {
+      return res.catch(function (err) {
+        store._devtoolHook.emit('vuex:error', err);
+        throw err
+      })
+    } else {
+      return res
+    }
+  });
+}
+
+function registerGetter (store, type, rawGetter, local) {
+  if (store._wrappedGetters[type]) {
+    if ((process.env.NODE_ENV !== 'production')) {
+      console.error(("[vuex] duplicate getter key: " + type));
+    }
+    return
+  }
+  store._wrappedGetters[type] = function wrappedGetter (store) {
+    return rawGetter(
+      local.state, // local state
+      local.getters, // local getters
+      store.state, // root state
+      store.getters // root getters
+    )
+  };
+}
+
+function enableStrictMode (store) {
+  watch(function () { return store._state.data; }, function () {
+    if ((process.env.NODE_ENV !== 'production')) {
+      assert(store._committing, "do not mutate vuex store state outside mutation handlers.");
+    }
+  }, { deep: true, flush: 'sync' });
+}
+
+function getNestedState (state, path) {
+  return path.reduce(function (state, key) { return state[key]; }, state)
+}
+
+function unifyObjectStyle (type, payload, options) {
+  if (isObject(type) && type.type) {
+    options = payload;
+    payload = type;
+    type = type.type;
+  }
+
+  if ((process.env.NODE_ENV !== 'production')) {
+    assert(typeof type === 'string', ("expects string as the type, but found " + (typeof type) + "."));
+  }
+
+  return { type: type, payload: payload, options: options }
+}
+
+/**
+ * Reduce the code which written in Vue.js for committing the mutation
+ * @param {String} [namespace] - Module's namespace
+ * @param {Object|Array} mutations # Object's item can be a function which accept `commit` function as the first param, it can accept another params. You can commit mutation and do any other things in this function. specially, You need to pass anthor params from the mapped function.
+ * @return {Object}
+ */
+var mapMutations = normalizeNamespace(function (namespace, mutations) {
+  var res = {};
+  if ((process.env.NODE_ENV !== 'production') && !isValidMap(mutations)) {
+    console.error('[vuex] mapMutations: mapper parameter must be either an Array or an Object');
+  }
+  normalizeMap(mutations).forEach(function (ref) {
+    var key = ref.key;
+    var val = ref.val;
+
+    res[key] = function mappedMutation () {
+      var args = [], len = arguments.length;
+      while ( len-- ) args[ len ] = arguments[ len ];
+
+      // Get the commit method from store
+      var commit = this.$store.commit;
+      if (namespace) {
+        var module = getModuleByNamespace(this.$store, 'mapMutations', namespace);
+        if (!module) {
+          return
+        }
+        commit = module.context.commit;
+      }
+      return typeof val === 'function'
+        ? val.apply(this, [commit].concat(args))
+        : commit.apply(this.$store, [val].concat(args))
+    };
+  });
+  return res
+});
+
+/**
+ * Normalize the map
+ * normalizeMap([1, 2, 3]) => [ { key: 1, val: 1 }, { key: 2, val: 2 }, { key: 3, val: 3 } ]
+ * normalizeMap({a: 1, b: 2, c: 3}) => [ { key: 'a', val: 1 }, { key: 'b', val: 2 }, { key: 'c', val: 3 } ]
+ * @param {Array|Object} map
+ * @return {Object}
+ */
+function normalizeMap (map) {
+  if (!isValidMap(map)) {
+    return []
+  }
+  return Array.isArray(map)
+    ? map.map(function (key) { return ({ key: key, val: key }); })
+    : Object.keys(map).map(function (key) { return ({ key: key, val: map[key] }); })
+}
+
+/**
+ * Validate whether given map is valid or not
+ * @param {*} map
+ * @return {Boolean}
+ */
+function isValidMap (map) {
+  return Array.isArray(map) || isObject(map)
+}
+
+/**
+ * Return a function expect two param contains namespace and map. it will normalize the namespace and then the param's function will handle the new namespace and the map.
+ * @param {Function} fn
+ * @return {Function}
+ */
+function normalizeNamespace (fn) {
+  return function (namespace, map) {
+    if (typeof namespace !== 'string') {
+      map = namespace;
+      namespace = '';
+    } else if (namespace.charAt(namespace.length - 1) !== '/') {
+      namespace += '/';
+    }
+    return fn(namespace, map)
+  }
+}
+
+/**
+ * Search a special module from store by namespace. if module not exist, print error message.
+ * @param {Object} store
+ * @param {String} helper
+ * @param {String} namespace
+ * @return {Object}
+ */
+function getModuleByNamespace (store, helper, namespace) {
+  var module = store._modulesNamespaceMap[namespace];
+  if ((process.env.NODE_ENV !== 'production') && !module) {
+    console.error(("[vuex] module namespace not found in " + helper + "(): " + namespace));
+  }
+  return module
+}
+
+var script = {
   components: {
     Loading: script$1,
     FileInput: script$2
   },
+  computed: {
+    showLoading(){
+      return this.$store.state.showLoading;
+    }
+  },
+  methods: {
+    ...mapMutations(['toggleLoading', 'hideLoading'])
+  },
   mounted() {
-    this.buildScene();
+    buildScene();
   }
 };
 
@@ -104010,14 +104577,18 @@ const _withScopeId = n => (pushScopeId("data-v-7ba5bd90"),n=n(),popScopeId(),n);
 const _hoisted_1 = /*#__PURE__*/ _withScopeId(() => /*#__PURE__*/createBaseVNode("canvas", { id: "three-canvas" }, null, -1 /* HOISTED */));
 
 function render(_ctx, _cache, $props, $setup, $data, $options) {
-  const _component_Loading = resolveComponent("Loading");
   const _component_FileInput = resolveComponent("FileInput");
+  const _component_Loading = resolveComponent("Loading");
 
   return (openBlock(), createElementBlock(Fragment, null, [
     _hoisted_1,
-    createCommentVNode(" <canvas id=\"three-canvas\"></canvas> "),
-    createVNode(_component_Loading),
-    createVNode(_component_FileInput)
+    createVNode(_component_FileInput, {
+      onFileUploaded: _ctx.toggleLoading,
+      onFileRendered: _ctx.hideLoading
+    }, null, 8 /* PROPS */, ["onFileUploaded", "onFileRendered"]),
+    ($options.showLoading)
+      ? (openBlock(), createBlock(_component_Loading, { key: 0 }))
+      : createCommentVNode("v-if", true)
   ], 64 /* STABLE_FRAGMENT */))
 }
 
@@ -104028,4 +104599,27 @@ script.render = render;
 script.__scopeId = "data-v-7ba5bd90";
 script.__file = "src/App.vue";
 
-createApp(script).mount('#app');
+var state = createStore({
+    state: {
+        showLoading: false,
+    },
+    mutations: {
+        toggleLoading(state) { 
+            state.showLoading = !state.showLoading;
+          },
+    },
+    actions: {
+        // setLoadingStatus: ({ commit }, status) => {
+        //     commit('setLoadingStatus', status)
+        // },
+    },
+    getters: {
+        // loadingStatus: (state) => {
+        //     return state.loading
+        // },
+    }
+});
+
+const app = createApp(script);
+
+app.use(state).mount('#app');

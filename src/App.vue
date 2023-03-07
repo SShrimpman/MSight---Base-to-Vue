@@ -1,10 +1,25 @@
+<template>
+  <canvas id="three-canvas"></canvas>
+  <FileInput @file-uploaded="toggleLoading" @file-rendered="hideLoading"/>
+  <Loading v-if="showLoading"/>
+</template>
+
 <script>
 import FileInput from '../src/components/FileInput.vue';
 import Loading from '../src/components/Loading.vue'
 import buildScene from '../src/helpers/builders/buildScene'
+// import userInputs from '../src/components/events/userInputs';
 import { mapMutations } from 'vuex';
 
+// let isMouseDragging = false;
+
+
 export default {
+  // data(){
+  //   return {
+  //     canvas: document.getElementById("three-canvas")
+  //   }
+  // },
   components: {
     Loading,
     FileInput
@@ -15,19 +30,16 @@ export default {
     }
   },
   methods: {
-    ...mapMutations(['toggleLoading', 'hideLoading'])
+    ...mapMutations(['toggleLoading', 'hideLoading']),
+    // onFileRendered(){
+      
+    // }
   },
   mounted() {
     buildScene()
   }
 }
 </script>
-
-<template>
-  <canvas id="three-canvas"></canvas>
-  <FileInput @file-uploaded="toggleLoading" @file-rendered="hideLoading"/>
-  <Loading v-if="showLoading"/>
-</template>
 
 <style scoped>
 #three-canvas {

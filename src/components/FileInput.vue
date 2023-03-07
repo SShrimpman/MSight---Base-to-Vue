@@ -14,9 +14,6 @@ export default {
             buttonInput: "buttonInput",
         }
     },
-    created() {
-        console.log(this.$store.state.loading)
-    },
     methods: {
         async uploadAndHide(event) {
             const buttonInput = this.$refs[this.buttonInput];

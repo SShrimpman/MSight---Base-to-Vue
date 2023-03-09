@@ -8,6 +8,7 @@ import { nextTick } from "vue";
 import loadModels from "../helpers/loadModels"
 
 export default {
+    emits:['file-uploaded', 'file-rendered'],
     data(){
         return{
             fileInputRef: "fileInputRef",

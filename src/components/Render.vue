@@ -1,0 +1,47 @@
+<template>
+    <Canvas/>
+    <FileInput @file-uploaded="toggleLoading" @file-rendered="hideLoading"/>
+    <Loading v-if="showLoading"/>
+  </template>
+  
+  <script>
+  import Canvas from './Canvas.vue';
+  import FileInput from '../components/FileInput.vue';
+  import Loading from '../components/Loading.vue'
+  import startUserInputs from '../components/events/userInputs';
+  import startRenderingEvents from "../components/events/viewerRenderingEvents";
+  import { mapMutations } from 'vuex';
+  
+  
+  export default {
+    components: {
+      Canvas,
+      Loading,
+      FileInput
+    },
+    computed: {
+      showLoading(){
+        return this.$store.state.showLoading;
+      }
+    },
+    methods: {
+      ...mapMutations(['toggleLoading', 'hideLoading']),
+    },
+    mounted() {
+      startUserInputs();
+      startRenderingEvents();
+    }
+  }
+  </script>
+  
+  <style scoped>
+  #three-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    outline: none;
+    width: 100vw;
+    height: 100vh;
+    background-image: linear-gradient(0deg, rgb(250, 250, 250) 0%, var(--primary-color-light) 100%);
+  }
+  </style>

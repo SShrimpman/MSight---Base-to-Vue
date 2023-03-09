@@ -1,3 +1,4 @@
+import { emitGlobalEvent } from "../../helpers/emitEvent";
 import { pickObject, pickClippingPlane, pickCrossPlane } from "../../helpers/raytracing";
 import * as ClippingPlanesStore from "../../stores/clippingPlanes";
 import { disableFeatureKeys, isUserPressingSpecialKeys, userInteractions } from "../../stores/userInteractions";
@@ -14,11 +15,14 @@ import * as SelectedStore from "../../stores/selection.js";
 import { openSavedViewForm } from "../../helpers/savedViews";
 
 let isMouseDragging = false;
-const canvas = document.getElementById("three-canvas");
 
 export default function startUserInputs() {
+  const canvas = document.getElementById('three-canvas');
+  document.addEventListener("wereReady", () => {
+    emitGlobalEvent("loadingComplete");
+
     // Double-click => highlights and shows details of pointed object
-    canvas.ondblclick = (event) => pickObject(event, true, true);
+    // canvas.ondblclick = (event) => pickObject(event, true, true);
 
     canvas.onmousemove = async (event) => {
       // When mouse is dragging a clipping plane
@@ -115,6 +119,7 @@ export default function startUserInputs() {
           break;
       }
     });
+  });
 }
 
 function resetVisuals() {
@@ -258,6 +263,24 @@ async function dragClippingPlane(event, isUserInteraction) {
   ClippingPlanesStore.crossPlane.points.start.copy(ClippingPlanesStore.crossPlane.points.end);
 }
 
+//
+// TESTING
+//
+// window.addEventListener("keydown", (event) => {
+//   const keyPressed = event.code;
+//   switch (keyPressed) {
+//     case "KeyT": {
+//       console.log("lets go!");
+//       renderText();
+//       break;
+//     }
+//     default:
+//       break;
+//   }
+// });
+//
+//
+
 window.addEventListener("contextmenu", async (e) => {
   e.preventDefault();
 
@@ -366,3 +389,4 @@ window.addEventListener("contextmenu", async (e) => {
 function toggleCameraControls(isOn) {
   SceneStore.controls.enabled = isOn;
 }
+

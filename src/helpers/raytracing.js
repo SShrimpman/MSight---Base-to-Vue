@@ -142,8 +142,9 @@ function pickAxlePlane() {
 // AUX Functions
 
 function setupCast(event, type = false) {
+  const threeCanvas = document.getElementById('three-canvas')
   // Computes the position of the mouse on the screen
-  const bounds = Scene.threeCanvas.getBoundingClientRect();
+  const bounds = threeCanvas.getBoundingClientRect();
 
   const x1 = event.clientX - bounds.left;
   const x2 = bounds.right - bounds.left;

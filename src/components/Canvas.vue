@@ -11,7 +11,11 @@ import {
     pickCrossPlane,
 } from "../helpers/raytracing";
 import * as ClippingPlanesStore from "../stores/clippingPlanes";
-import { disableFeatureKeys, isUserPressingSpecialKeys, userInteractions } from "../stores/userInteractions";
+import { 
+    disableFeatureKeys,
+    isUserPressingSpecialKeys, 
+    userInteractions 
+} from "../stores/userInteractions";
 import * as Materials from "../configs/materials";
 import * as SceneStore from "../stores/scene";
 import * as THREE from "three";
@@ -96,7 +100,6 @@ export default defineComponent({
                 stopMovingClippingPlane(event);
             };
 
-
             window.addEventListener("keydown", (event) => {
                 const keyPressed = event.code;
                 switch (keyPressed) {
@@ -110,6 +113,7 @@ export default defineComponent({
                         break;
                 }
             });
+
             window.addEventListener("keyup", (event) => {
                 const keyPressed = event.code;
                 switch (keyPressed) {
@@ -132,125 +136,11 @@ export default defineComponent({
                         break;
                 }
             });
-
-            window.addEventListener("contextmenu", async (e) => {
-                e.preventDefault();
-
-                if (!userInteractions.controlActive) return;
-
-                toggleCameraControls(false);
-
-                const object = await pickObject(e, false);
-                // render menu
-                const contextMenu = renderContextMenu();
-                document.body.appendChild(contextMenu);
-                // position menu
-                contextMenu.style.left = `${e.clientX}px`;
-                contextMenu.style.top = `${e.clientY}px`;
-
-                // Closing event handling
-                document.body.addEventListener("mousedown", closeMenu);
-                function closeMenu() {
-                    contextMenu.remove();
-                    document.body.removeEventListener("mousedown", closeMenu);
-                    toggleCameraControls(true);
-                }
-
-                const menuList = document.getElementById("context-menu-list");
-
-                // Menu content
-                const config = {
-                    options: object ? objectContextOptions() : freeContextOptions(),
-                    object,
-                };
-                // Render menu
-                renderMenu(config);
-
-                //
-                // Aux functions in scope
-                //
-                function objectContextOptions() {
-                    return [
-                        {
-                            displayText: "Focus camera here",
-                            hasSeperator: false,
-                            action: (position) => setCameraLookingPoint(position),
-                        },
-                        {
-                            displayText: "Focus camera on model center",
-                            hasSeperator: true,
-                            action: (position) => setCameraLookingWorldCenter(),
-                        },
-                        {
-                            displayText: "Save view",
-                            hasSeperator: false,
-                            action: (position) => openSavedViewForm(position),
-                        },
-                        {
-                            displayText: "Create annotation",
-                            hasSeperator: true,
-                            action: (position) => {
-                                const form = renderAnnotationForm(position);
-                                document.body.appendChild(form);
-                            },
-                        },
-                    ];
-                }
-
-                function freeContextOptions() {
-                    return [
-                        {
-                            displayText: "Focus camera on model center",
-                            hasSeperator: true,
-                            action: (position) => setCameraLookingWorldCenter(),
-                        },
-                        {
-                            displayText: "Save view",
-                            hasSeperator: true,
-                            action: (position) => openSavedViewForm(position),
-                        },
-                    ];
-                }
-
-                function renderMenu(config) {
-                    config.options.forEach((option) => {
-                        renderOption(menuList, option, config.object);
-                    });
-                }
-
-                /**
-                 *
-                 * @param {HTMLElement} menuList Text to display in the UI
-                 * @param {object} option {displayText: string, action: function, hasSeperator: boolean}
-                 */
-                function renderOption(menuList, option, object) {
-                    const optionEl = renderContextMenuItem(option.displayText, option.hasSeperator);
-                    menuList.appendChild(optionEl);
-                    optionEl.addEventListener("mousedown", (e) => {
-                        e.stopPropagation();
-
-                        // get position and run custom action
-                        const position = object ? object.object.point : undefined;
-                        option.action(position);
-
-                        closeMenu();
-                    });
-                }
-            });
         });
-
-        function toggleCameraControls(isOn) {
-            SceneStore.controls.enabled = isOn;
-        }
 
         function resetVisuals() {
             resetVisualPlanesColoring();
             resetHighlighted();
-        }
-
-        function resetHighlighted() {
-            RaycastStore.resetFound();
-            SelectedStore.resetHighlightedProperties();
         }
 
         let _opacity = undefined;
@@ -264,6 +154,11 @@ export default defineComponent({
                 visualPlane.material.color = _color;
             }
             _uuid = undefined;
+        }
+
+        function resetHighlighted() {
+            RaycastStore.resetFound();
+            SelectedStore.resetHighlightedProperties();
         }
 
         function highlightVisualPlane() {
@@ -282,7 +177,45 @@ export default defineComponent({
             visualPlane.material.color = Materials.materials.highlighted.color;
         }
 
-        async function dragClippingPlane(event) {
+        async function moveClippingPlane(event) {
+            // disable camera
+            toggleCameraControls(false);
+            // drag plane
+            userInteractions.draggingPlane = true;
+
+            const vNormal = ClippingPlanesStore.normals[ClippingPlanesStore.selectedPlaneIdx];
+            const key = vNormal.y !== 0 ? "y" : "x";
+            const axleOfMovement = key == "y" ? key : vNormal.x !== 0 ? "x" : "z";
+
+            const normals = {
+                x: new THREE.Vector3(1, 0, 0),
+                y: new THREE.Vector3(0, 1, 0),
+                z: new THREE.Vector3(0, 0, 1),
+            };
+
+            for (const axle in normals) {
+                if (axle == axleOfMovement) continue;
+
+                const normal = normals[axle];
+                const crossPlane = new THREE.Plane(normal, ClippingPlanesStore.center[axle]);
+                ClippingPlanesStore.crossPlane.planes.push(crossPlane);
+
+                // const helper = new THREE.PlaneHelper(crossPlane, 1000, 0x000000);
+                // scene.add(helper);
+            }
+
+            ClippingPlanesStore.crossPlane.points.start = await pickCrossPlane(event);
+        }
+
+        function stopMovingClippingPlane(event) {
+            // enable camera
+            toggleCameraControls(true);
+            // stop plane
+            userInteractions.draggingPlane = false;
+            ClippingPlanesStore.resetCrossPlane();
+        }
+
+        async function dragClippingPlane(event, isUserInteraction) {
             const visualPlane = ClippingPlanesStore.foundPlane.object;
             const vNormal = ClippingPlanesStore.normals[ClippingPlanesStore.selectedPlaneIdx];
 
@@ -346,42 +279,113 @@ export default defineComponent({
             ClippingPlanesStore.crossPlane.points.start.copy(ClippingPlanesStore.crossPlane.points.end);
         }
 
-        async function moveClippingPlane(event) {
-            // disable camera
+        window.addEventListener("contextmenu", async (e) => {
+            e.preventDefault();
+
+            if (!userInteractions.controlActive) return;
+
             toggleCameraControls(false);
-            // drag plane
-            userInteractions.draggingPlane = true;
 
-            const vNormal = ClippingPlanesStore.normals[ClippingPlanesStore.selectedPlaneIdx];
-            const key = vNormal.y !== 0 ? "y" : "x";
-            const axleOfMovement = key == "y" ? key : vNormal.x !== 0 ? "x" : "z";
+            const object = await pickObject(e, false);
+            // render menu
+            const contextMenu = renderContextMenu();
+            document.body.appendChild(contextMenu);
+            // position menu
+            contextMenu.style.left = `${e.clientX}px`;
+            contextMenu.style.top = `${e.clientY}px`;
 
-            const normals = {
-                x: new THREE.Vector3(1, 0, 0),
-                y: new THREE.Vector3(0, 1, 0),
-                z: new THREE.Vector3(0, 0, 1),
-            };
-
-            for (const axle in normals) {
-                if (axle == axleOfMovement) continue;
-
-                const normal = normals[axle];
-                const crossPlane = new THREE.Plane(normal, ClippingPlanesStore.center[axle]);
-                ClippingPlanesStore.crossPlane.planes.push(crossPlane);
-
-                // const helper = new THREE.PlaneHelper(crossPlane, 1000, 0x000000);
-                // scene.add(helper);
+            // Closing event handling
+            document.body.addEventListener("mousedown", closeMenu);
+            function closeMenu() {
+                contextMenu.remove();
+                document.body.removeEventListener("mousedown", closeMenu);
+                toggleCameraControls(true);
             }
 
-            ClippingPlanesStore.crossPlane.points.start = await pickCrossPlane(event);
-        }
+            const menuList = document.getElementById("context-menu-list");
 
-        function stopMovingClippingPlane(event) {
-            // enable camera
-            toggleCameraControls(true);
-            // stop plane
-            userInteractions.draggingPlane = false;
-            ClippingPlanesStore.resetCrossPlane();
+            // Menu content
+            const config = {
+                options: object ? objectContextOptions() : freeContextOptions(),
+                object,
+            };
+            // Render menu
+            renderMenu(config);
+
+            //
+            // Aux functions in scope
+            //
+            function objectContextOptions() {
+                return [
+                    {
+                        displayText: "Focus camera here",
+                        hasSeperator: false,
+                        action: (position) => setCameraLookingPoint(position),
+                    },
+                    {
+                        displayText: "Focus camera on model center",
+                        hasSeperator: true,
+                        action: (position) => setCameraLookingWorldCenter(),
+                    },
+                    {
+                        displayText: "Save view",
+                        hasSeperator: false,
+                        action: (position) => openSavedViewForm(position),
+                    },
+                    {
+                        displayText: "Create annotation",
+                        hasSeperator: true,
+                        action: (position) => {
+                            const form = renderAnnotationForm(position);
+                            document.body.appendChild(form);
+                        },
+                    },
+                ];
+            }
+
+            function freeContextOptions() {
+                return [
+                    {
+                        displayText: "Focus camera on model center",
+                        hasSeperator: true,
+                        action: (position) => setCameraLookingWorldCenter(),
+                    },
+                    {
+                        displayText: "Save view",
+                        hasSeperator: true,
+                        action: (position) => openSavedViewForm(position),
+                    },
+                ];
+            }
+
+            function renderMenu(config) {
+                config.options.forEach((option) => {
+                    renderOption(menuList, option, config.object);
+                });
+            }
+
+            /**
+             *
+             * @param {HTMLElement} menuList Text to display in the UI
+             * @param {object} option {displayText: string, action: function, hasSeperator: boolean}
+             */
+            function renderOption(menuList, option, object) {
+                const optionEl = renderContextMenuItem(option.displayText, option.hasSeperator);
+                menuList.appendChild(optionEl);
+                optionEl.addEventListener("mousedown", (e) => {
+                    e.stopPropagation();
+
+                    // get position and run custom action
+                    const position = object ? object.object.point : undefined;
+                    option.action(position);
+
+                    closeMenu();
+                });
+            }
+        });
+
+        function toggleCameraControls(isOn) {
+            SceneStore.controls.enabled = isOn;
         }
     },
 });

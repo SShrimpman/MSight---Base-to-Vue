@@ -1,5 +1,7 @@
 // https://gist.github.com/krabs-github/ec56e4f1c12cddf86ae9c551aa9d9e04
 
+let r, g, b, hsp
+
 function lightOrDark(color) {
     // Check the format of the color, HEX or RGB?
     if (color.match(/^rgb/)) {

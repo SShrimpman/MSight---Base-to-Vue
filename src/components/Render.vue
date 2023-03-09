@@ -8,7 +8,6 @@
   import Canvas from './Canvas.vue';
   import FileInput from '../components/FileInput.vue';
   import Loading from '../components/Loading.vue'
-  import startUserInputs from '../components/events/userInputs';
   import startRenderingEvents from "../components/events/viewerRenderingEvents";
   import { mapMutations } from 'vuex';
   
@@ -28,7 +27,6 @@
       ...mapMutations(['toggleLoading', 'hideLoading']),
     },
     mounted() {
-      startUserInputs();
       startRenderingEvents();
     }
   }

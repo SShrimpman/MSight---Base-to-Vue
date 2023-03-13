@@ -1,5 +1,6 @@
 <template>
-    <canvas @contextmenu.prevent ref="canvas" id="three-canvas" @click="initCanvas" @auxclick.ctrl.prevent="showContextMenu"></canvas>
+    <canvas @contextmenu.prevent ref="canvas" id="three-canvas" @click="initCanvas"
+        @auxclick.ctrl.prevent="showContextMenu"></canvas>
     <ContextMenu @contextmenu.prevent ref="contextMenu" v-if="showMenu" :options="options" :mousePos="mousePos" />
 </template>
   
@@ -64,21 +65,26 @@ export default {
                 this.options = this.freeContextOptions();
             }
 
+            // Add event listener to close menu when clicked outside
+            document.body.addEventListener('mousedown', this.closeMenu);
+
             this.showMenu = true;
         },
-        closeMenu() {
-            this.showMenu = false;
-            document.body.removeEventListener('mousedown', this.closeMenu);
-            this.toggleCameraControls(true);
+        closeMenu(e) {
+            // Check if event target is a child of the ContextMenu component
+            if (!this.$refs.contextMenu.$el.contains(e.target)) {
+                this.showMenu = false;
+                document.body.removeEventListener('mousedown', this.closeMenu);
+                this.toggleCameraControls(true);
+            }
         },
         objectContextOptions() {
             return [
                 {
                     displayText: 'Focus camera here',
                     hasSeperator: false,
-                    action: (position) => { 
+                    action: (position) => {
                         setCameraLookingPoint(position);
-                        this.closeMenu();
                     }
                 },
                 {
@@ -86,15 +92,13 @@ export default {
                     hasSeperator: true,
                     action: () => {
                         setCameraLookingWorldCenter();
-                        this.closeMenu();
                     }
                 },
                 {
                     displayText: 'Save view',
                     hasSeperator: false,
-                    action: (position) => { 
+                    action: (position) => {
                         openSavedViewForm(position);
-                        this.closeMenu();
                     }
                 },
                 {
@@ -103,7 +107,6 @@ export default {
                     action: (position) => {
                         const form = renderAnnotationForm(position);
                         document.body.appendChild(form);
-                        this.closeMenu();
                     },
                 },
             ];
@@ -113,9 +116,8 @@ export default {
                 {
                     displayText: 'Focus camera on model center',
                     hasSeperator: true,
-                    action: () =>  {
+                    action: () => {
                         setCameraLookingWorldCenter();
-                        this.closeMenu();
                     }
                 },
                 {
@@ -123,7 +125,6 @@ export default {
                     hasSeperator: true,
                     action: (position) => {
                         openSavedViewForm(position);
-                        this.closeMenu();
                     }
                 },
             ];

@@ -9,8 +9,6 @@
 </template>
 
 <script>
-import { setCameraLookingPoint, setCameraLookingWorldCenter } from "../../helpers/camera";
-
     export default{
         // props: {
         //     mousePos: {

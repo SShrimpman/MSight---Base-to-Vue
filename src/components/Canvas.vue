@@ -29,7 +29,6 @@ import * as SelectedStore from "../stores/selection.js";
 import { openSavedViewForm } from "../helpers/savedViews";
 
 let isMouseDragging = false;
-let isMovingPlanes = false
 
 export default {
     data() {
@@ -94,7 +93,6 @@ export default {
                     displayText: 'Focus camera on model center',
                     hasSeperator: true,
                     action: () => {
-                        console.log('teste')
                         setCameraLookingWorldCenter();
                         this.closeMenu();
                     }

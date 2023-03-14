@@ -10,20 +10,7 @@
 
 <script>
     export default{
-        // props: {
-        //     mousePos: {
-        //         type: Object,
-        //         required: true,
-        //     },
-        //     options: {
-                
-        //     }
-        // }
         props: ['mousePos', 'options'],
-
-        mounted(){
-
-        },
     }
 </script>
 

@@ -23,7 +23,7 @@ import * as THREE from "three";
 import { clippingConfigs } from "../configs/clippingPlanes";
 import ContextMenu from "./contextMenu/ContextMenu.vue";
 import { renderAnnotationForm } from "../components/annotation/form";
-import { setCameraLookingPoint, setCameraLookingWorldCenter } from "../helpers/camera";
+import { setCameraLookingPoint, setCameraLookingWorldCenter, setCameraLookingPointHere } from "../helpers/camera";
 import * as RaycastStore from "../stores/raycast";
 import * as SelectedStore from "../stores/selection.js";
 import { openSavedViewForm } from "../helpers/savedViews";
@@ -84,34 +84,22 @@ export default {
                 {
                     displayText: 'Focus camera here',
                     hasSeperator: false,
-                    action: (position) => {
-                        setCameraLookingPoint(position);
-                        this.closeMenu();
-                    }
+                    action: (position) => { setCameraLookingPointHere(position.x, position.y); this.closeMenu(); }
                 },
                 {
                     displayText: 'Focus camera on model center',
                     hasSeperator: true,
-                    action: () => {
-                        setCameraLookingWorldCenter();
-                        this.closeMenu();
-                    }
+                    action: () => { setCameraLookingWorldCenter(); this.closeMenu(); }
                 },
                 {
                     displayText: 'Save view',
                     hasSeperator: false,
-                    action: (position) => {
-                        openSavedViewForm(position);
-                        this.closeMenu();
-                    }
+                    action: (position) => { openSavedViewForm(position); this.closeMenu(); }
                 },
                 {
                     displayText: 'Create annotation',
                     hasSeperator: true,
-                    action: (position) => {
-                        const form = renderAnnotationForm(position);
-                        document.body.appendChild(form);
-                        this.closeMenu();
+                    action: (position) => { const form = renderAnnotationForm(position); document.body.appendChild(form); this.closeMenu();
                     },
                 },
             ];
@@ -121,18 +109,12 @@ export default {
                 {
                     displayText: 'Focus camera on model center',
                     hasSeperator: true,
-                    action: () => {
-                        setCameraLookingWorldCenter();
-                        this.closeMenu();
-                    }
+                    action: () => { setCameraLookingWorldCenter(); this.closeMenu(); }
                 },
                 {
                     displayText: 'Save view',
                     hasSeperator: true,
-                    action: (position) => {
-                        openSavedViewForm(position);
-                        this.closeMenu();
-                    }
+                    action: (position) => { openSavedViewForm(position); this.closeMenu(); }
                 },
             ];
         },

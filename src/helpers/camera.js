@@ -94,6 +94,30 @@ function setCameraData(savedView) {
   }
 }
 
+function setCameraLookingPointHere(mouseX, mouseY) {
+  const controls = StoreScene.controls;
+  const camera = StoreScene.camera;
+
+  // convert mouse position to normalized device coordinates
+  const mouse = new THREE.Vector2(
+    (mouseX / window.innerWidth) * 2 - 1,
+    -(mouseY / window.innerHeight) * 2 + 1
+  );
+
+  // create a raycaster
+  const raycaster = new THREE.Raycaster();
+  raycaster.setFromCamera(mouse, camera);
+
+  // intersect with objects in the scene
+  const intersects = raycaster.intersectObjects(StoreScene.scene.children, true);
+
+  if (intersects.length > 0) {
+    // focus the camera on the first intersected object
+    controls.target.copy(intersects[0].point);
+    controls.update();
+  }
+}
+
 function setCameraLookingPoint(point) {
   const controls = StoreScene.controls;
   controls.target = point;
@@ -117,4 +141,4 @@ function getFrameVector(movementVector, frames) {
   return frameVector;
 }
 
-export { getCameraData, setCameraData, setCameraLookingPoint, setCameraLookingWorldCenter, setCameraPosition };
+export { getCameraData, setCameraData, setCameraLookingPoint, setCameraLookingWorldCenter, setCameraPosition, setCameraLookingPointHere };

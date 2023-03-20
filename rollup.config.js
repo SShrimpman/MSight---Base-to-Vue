@@ -17,5 +17,6 @@ export default {
       extensions: ['.css'],
     }),
     resolve(),
-  ]
+  ],
+  external : ['vue-router'],
 };

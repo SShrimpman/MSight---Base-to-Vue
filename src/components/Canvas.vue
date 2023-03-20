@@ -23,10 +23,11 @@ import * as THREE from "three";
 import { clippingConfigs } from "../configs/clippingPlanes";
 import ContextMenu from "./contextMenu/ContextMenu.vue";
 import { renderAnnotationForm } from "../components/annotation/form";
-import { setCameraLookingPoint, setCameraLookingWorldCenter, setCameraLookingPointHere } from "../helpers/camera";
+import { setCameraLookingWorldCenter, setCameraLookingPointHere } from "../helpers/camera";
 import * as RaycastStore from "../stores/raycast";
 import * as SelectedStore from "../stores/selection.js";
 import { openSavedViewForm } from "../helpers/savedViews";
+import SavedViews from "../helpers/SavedViews.vue";
 
 let isMouseDragging = false;
 
@@ -94,7 +95,7 @@ export default {
                 {
                     displayText: 'Save view',
                     hasSeperator: false,
-                    action: (position) => { openSavedViewForm(position); this.closeMenu(); }
+                    action: (position) => { SavedViews.methods.openSavedViewForm(position); console.log(SavedViews.methods.openSavedViewForm(position)); this.closeMenu(); }
                 },
                 {
                     displayText: 'Create annotation',

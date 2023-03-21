@@ -1,11 +1,11 @@
 <template>
-    <PopupWithHeader :title="'Saving view'" :subtitle="'Creating new saved perspective'" :icon="icons.savedViews">
+    <PopupWithHeader class="hidden" ref="popup" title="Saving view" subtitle="Creating new saved perspective" :icon="icons.savedViews"
+        @toggle="closePopup">
         <form class="styling-form" @submit.prevent="saveView">
             <label for="note" class="styling-form-label">Title</label>
-            <input type="text" v-model="note" id="saved-view-form-note-input" class="styling-form-input" name="note" />
-            <span v-if="!note" class="styling-form-warning">Please input a title</span>
-            <span v-if="!isNameValid" class="styling-form-warning">There's already a saved view with the same title!</span>
-            <input type="submit" value="Save" :disabled="!isNameValid || !note" class="styling-form-submit" />
+            <input type="text" id="saved-view-form-note-input" class="styling-form-input" name="note" v-model="note">
+            <span class="styling-form-warning" :class="{ hidden: !showWarning }">{{ warningMessage }}</span>
+            <input type="submit" value="Save" class="styling-form-submit">
         </form>
     </PopupWithHeader>
 </template>
@@ -19,43 +19,54 @@ import { getCameraData } from "../../helpers/camera";
 import * as ClippingPlanesStore from "../../stores/clippingPlanes";
 import { clipping } from "../../helpers/clippingPlanes";
 import { getVisibilityByIds } from "../../stores/selection";
+import { defineComponent } from "vue";
 
-export default {
+export default defineComponent({
+    name: "NewViewForm",
     components: {
         PopupWithHeader,
     },
     data() {
         return {
+            icons,
             note: "",
+            showWarning: false,
+            warningMessage: "",
         };
-    },
-    computed: {
-        isNameValid() {
-            const viewsNamesUsed = savedViews.map((x) => x.note);
-            return !viewsNamesUsed.includes(this.note);
-        },
     },
     methods: {
         saveView() {
-            if (!this.note) {
+            const note = this.note.trim();
+
+            if (!note) {
+                this.showWarning = true;
+                this.warningMessage = "Please input a title";
                 return;
             }
 
-            if (!this.isNameValid) {
+            const viewsNamesUsed = savedViews.map((x) => x.note);
+            const isNameValid = viewsNamesUsed.indexOf(note) == -1;
+
+            if (!isNameValid) {
+                this.showWarning = true;
+                this.warningMessage = "There's already a saved view with the same title!";
                 return;
             }
 
             const cameraData = getCameraData();
+
             if (ClippingPlanesStore.visualPlanes.length == 0) {
                 // build clipping planes
                 clipping(true);
                 // disable their render
                 clipping(false);
             }
+
             const clippingData = {
                 min: ClippingPlanesStore.edgePositions.currentMin.clone(),
                 max: ClippingPlanesStore.edgePositions.currentMax.clone(),
             };
+
             const renderVisibilityData = JSON.parse(JSON.stringify(getVisibilityByIds()));
             const hiddenIds = {};
             // Cycle models
@@ -86,6 +97,6 @@ export default {
             default: () => icons,
         },
     },
-};
+});
 </script>
   

@@ -1,13 +1,14 @@
 import resolve from '@rollup/plugin-node-resolve';
 import vue from 'rollup-plugin-vue'
+import commonjs from '@rollup/plugin-commonjs';
 import postcss from 'rollup-plugin-postcss'
 
 export default {
   input: 'src/main.js',
   output: [
     {
-      format: 'esm',
-      file: 'src/bundle.js'
+      file: 'src/bundle.js',
+      format: 'esm'
     },
   ],
   plugins: [
@@ -17,6 +18,6 @@ export default {
       extensions: ['.css'],
     }),
     resolve(),
+    commonjs()
   ],
-  external : ['vue-router'],
 };

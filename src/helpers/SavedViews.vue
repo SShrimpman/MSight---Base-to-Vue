@@ -8,6 +8,13 @@
       <SavedView v-for="savedView in savedViews" :key="savedView.id" :saved-view="savedView" />
     </ul>
   </div>
+  <!-- <Form ref="form" /> -->
+  <!-- <div ref="form"></div> -->
+  <!-- <Teleport to="body">
+    <div v-if="openSavedViewForm">
+      <Form/>
+    </div>
+  </Teleport> -->
 </template>
 
 <script>
@@ -16,6 +23,7 @@ import { savedViews } from "../stores/savedViews";
 import SavedView from "../components/savedView.js/SavedView.vue";
 import Icon from "../components/generic/icon.vue";
 import Form from "../components/savedView.js/Form.vue";
+import { renderNewViewForm } from "../components/savedView.js/form";
 
 export default {
   name: "SavedViews",
@@ -28,14 +36,21 @@ export default {
     return {
       savedViews,
       icons,
-      form: null,
+      form: false,
     };
   },
+  // mounted(){
+  //   this.form = Form;
+  // },
   methods: {
     openSavedViewForm(position) {
-      // this.form = Form
-      // console.log(this.form)
-      this.$router.push('/saveView' + position);
+      const form = renderNewViewForm(position);
+      form.classList.remove("hidden");
+      document.body.appendChild(form);
+      // const form = defineComponent(Form);
+      // console.log(form);
+      // const formInstance = new form.$mount(this.$refs.form)
+      // this.form = true 
     },
   },
 };

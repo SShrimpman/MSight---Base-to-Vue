@@ -95,7 +95,13 @@ export default {
                 {
                     displayText: 'Save view',
                     hasSeperator: false,
-                    action: (position) => { SavedViews.methods.openSavedViewForm(position); console.log(SavedViews.methods.openSavedViewForm(position)); this.closeMenu(); }
+                    action: (position) => { 
+                        // openSavedViewForm(position)
+                        SavedViews.methods.openSavedViewForm(position);
+                        // console.log(SavedViews.methods.openSavedViewForm(position));
+                        // this.$emit('open-saved-view-form', position);
+                        this.closeMenu(); 
+                    }
                 },
                 {
                     displayText: 'Create annotation',

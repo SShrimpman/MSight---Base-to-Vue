@@ -1,28 +1,19 @@
 <template>
-  <img :src="iconPath" :class="[iconClass]" @click="handleClick" />
+  <img :src="iconDirectory" />
 </template>
-  
+
 <script>
 export default {
+  name: "Icon",
   props: {
     iconFileName: {
       type: String,
       required: true,
     },
-    iconClass: {
-      type: String,
-      default: '',
-    },
   },
   computed: {
-    iconPath() {
+    iconDirectory() {
       return `./src/assets/icons/${this.iconFileName}.svg`;
-    },
-  },
-  methods: {
-    handleClick() {
-      console.log("icon click!")
-      this.$emit('click');
     },
   },
 };
